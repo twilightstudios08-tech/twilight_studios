@@ -1,0 +1,158 @@
+import React, { useState, useEffect } from 'react';
+import { Swiper, SwiperSlide } from 'swiper/react';
+import { EffectFade, Navigation, Pagination, Autoplay, Parallax } from 'swiper/modules';
+import axios from 'axios';
+import { motion } from 'framer-motion';
+
+// Import Swiper styles
+import 'swiper/css';
+import 'swiper/css/effect-fade';
+import 'swiper/css/navigation';
+import 'swiper/css/pagination';
+
+const Hero = () => {
+  const [slides, setSlides] = useState([]);
+  
+  // Helper to optimize Cloudinary URLs
+  const optimizeCloudinaryUrl = (url) => {
+    if (!url || !url.includes('cloudinary.com')) return url;
+    // Add q_auto:best for maximum quality, f_auto for speed
+    if (url.includes('/upload/q_auto')) return url;
+    return url.replace('/upload/', '/upload/f_auto,q_auto:best/');
+  };
+  const [content, setContent] = useState({ title: 'Timeless & Cinematic Memories.' });
+
+  useEffect(() => {
+    // Fetch hero text content
+    axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/content`)
+      .then(res => {
+        const heroContent = res.data.find(c => c.section === 'Hero');
+        if (heroContent) setContent(heroContent);
+      })
+      .catch(console.error);
+
+    // Fetch dynamic slides
+    axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/hero`)
+      .then(res => {
+        if (res.data && res.data.length > 0) {
+          setSlides(res.data);
+        } else {
+          // Fallback slides
+          setSlides([
+            { img: 'https://images.unsplash.com/photo-1544256627-c10f8546b4fb?q=80&w=1920&auto=format&fit=crop', text: 'Premium Baby Studio', title: 'TIMELESS', titleOutline: '& CINEMATIC MEMORIES.' },
+            { img: 'https://images.unsplash.com/photo-1516627145497-ae6968895b74?q=80&w=1920&auto=format&fit=crop', text: 'Maternity Experiences', title: 'BEAUTIFUL', titleOutline: 'JOURNEY' },
+            { img: 'https://images.unsplash.com/photo-1519689680058-324335c77eba?q=80&w=1920&auto=format&fit=crop', text: 'Cinematic Storytelling', title: 'CINEMATIC', titleOutline: 'STORIES' },
+          ]);
+        }
+      })
+      .catch(console.error);
+  }, []);
+
+  return (
+    <section className="relative w-full h-screen bg-black overflow-hidden group">
+      {slides.length > 0 && (
+        <Swiper
+          modules={[EffectFade, Navigation, Pagination, Autoplay, Parallax]}
+          effect="fade"
+          fadeEffect={{ crossFade: true }}
+          speed={1500}
+          parallax={true}
+          navigation={{
+            prevEl: '.swiper-button-prev-custom',
+            nextEl: '.swiper-button-next-custom',
+          }}
+          pagination={{
+            clickable: true,
+            renderBullet: function (index, className) {
+              return `<span class="${className} w-2 h-2 mx-2 rounded-full bg-white/30 transition-all duration-300 hover:bg-white hover:scale-150"></span>`;
+            },
+          }}
+          autoplay={{
+            delay: 5000,
+            disableOnInteraction: false,
+          }}
+          loop={true}
+          className="w-full h-full"
+        >
+          <div slot="container-start" className="parallax-bg absolute inset-0 z-0 bg-black" data-swiper-parallax="-23%"></div>
+          
+          {slides.map((slide, i) => (
+            <SwiperSlide key={i} className="relative w-full h-full flex items-center justify-center overflow-hidden">
+              {/* Desktop Image */}
+              <img 
+                src={optimizeCloudinaryUrl(slide.img)}
+                alt={slide.text}
+                loading={i === 0 ? "eager" : "lazy"}
+                fetchPriority={i === 0 ? "high" : "auto"}
+                className={`absolute inset-0 w-full h-full object-cover opacity-70 ${slide.mobileImg ? 'hidden md:block' : ''}`}
+                data-swiper-parallax="-30%"
+              />
+              
+              {/* Mobile Image */}
+              {slide.mobileImg && (
+                <img 
+                  src={optimizeCloudinaryUrl(slide.mobileImg)}
+                  alt={slide.text}
+                  loading={i === 0 ? "eager" : "lazy"}
+                  fetchPriority={i === 0 ? "high" : "auto"}
+                  className="absolute inset-0 w-full h-full object-cover opacity-70 block md:hidden"
+                  data-swiper-parallax="-30%"
+                />
+              )}
+              
+              {/* Overlay Gradient */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-black/20"></div>
+
+              {/* Content with Parallax */}
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                <div className="relative z-10 text-center px-4 max-w-5xl mx-auto pointer-events-auto">
+                  <div 
+                    className="font-oswald text-[12px] md:text-sm text-gray-400 uppercase tracking-[0.5em] mb-4" 
+                    data-swiper-parallax="-200"
+                  >
+                    {slide.text}
+                  </div>
+                  <h1 
+                    className="font-oswald font-bold text-5xl md:text-7xl lg:text-8xl text-white uppercase tracking-widest leading-tight drop-shadow-2xl break-words"
+                    data-swiper-parallax="-300"
+                  >
+                    {slide.title || content.title.split(' ')[0]}
+                  </h1>
+                  {(slide.titleOutline || content.title.split(' ')[1]) && (
+                    <h1 
+                      className="font-oswald font-bold text-5xl md:text-7xl lg:text-8xl text-transparent text-stroke-white uppercase tracking-widest leading-tight mt-2 drop-shadow-2xl break-words" 
+                      data-swiper-parallax="-150"
+                    >
+                      {slide.titleOutline || content.title.split(' ').slice(1).join(' ')}
+                    </h1>
+                  )}
+                </div>
+              </div>
+            </SwiperSlide>
+          ))}
+        </Swiper>
+      )}
+
+      {/* Custom Navigation */}
+      <div className="swiper-button-prev-custom absolute top-1/2 left-4 md:left-8 -translate-y-1/2 z-20 cursor-pointer group-hover:opacity-100 opacity-0 transition-opacity duration-500 flex items-center gap-2 md:gap-4">
+        <div className="w-6 md:w-12 h-[1px] bg-white/50 group-hover:bg-white transition-colors"></div>
+        <span className="text-white font-oswald text-[8px] md:text-xs uppercase tracking-[0.3em] -rotate-90 origin-left">Prev</span>
+      </div>
+      
+      <div className="swiper-button-next-custom absolute top-1/2 right-4 md:right-8 -translate-y-1/2 z-20 cursor-pointer group-hover:opacity-100 opacity-0 transition-opacity duration-500 flex items-center gap-2 md:gap-4">
+        <span className="text-white font-oswald text-[8px] md:text-xs uppercase tracking-[0.3em] rotate-90 origin-right">Next</span>
+        <div className="w-6 md:w-12 h-[1px] bg-white/50 group-hover:bg-white transition-colors"></div>
+      </div>
+      
+      {/* Scroll Indicator */}
+      <div className="absolute bottom-12 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center animate-bounce">
+        <div className="relative flex justify-center w-[1px]">
+          <span className="absolute bottom-full mb-4 text-[10px] text-white uppercase tracking-[0.3em] ml-[0.3em] font-sans">Scroll</span>
+          <div className="w-[1px] h-12 bg-gradient-to-b from-white to-transparent"></div>
+        </div>
+      </div>
+    </section>
+  );
+};
+
+export default Hero;

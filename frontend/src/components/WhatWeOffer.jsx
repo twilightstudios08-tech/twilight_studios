@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
 
 const WhatWeOffer = () => {
@@ -11,8 +11,8 @@ const WhatWeOffer = () => {
   const optimizeCloudinaryUrl = (url) => {
     if (!url || !url.includes('cloudinary.com')) return url;
     if (url.includes('/upload/q_auto')) return url;
-    // f_auto for speed, q_auto:best for high quality, w_1200 to cap extreme sizes
-    return url.replace('/upload/', '/upload/f_auto,q_auto:best,w_1200/');
+    // f_auto for speed, q_auto for optimal quality, w_1200 to cap extreme sizes
+    return url.replace('/upload/', '/upload/f_auto,q_auto,w_1200/');
   };
 
   useEffect(() => {
@@ -40,13 +40,13 @@ const WhatWeOffer = () => {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-100px" }}
           transition={{ duration: 0.8 }}
-          className="text-center md:text-left mb-16 md:mb-24 flex flex-col items-center md:items-start"
+          className="text-center flex flex-col items-center justify-center w-full mb-16 md:mb-24"
         >
-          <div>
+          <div className="mb-8">
             <h4 className="font-sans text-[10px] text-gray-500 uppercase tracking-[0.4em] mb-4">
               Curated Offerings
             </h4>
-            <h2 className="font-oswald font-bold text-5xl md:text-7xl lg:text-8xl text-white uppercase tracking-widest leading-none">
+            <h2 className="font-oswald font-bold text-5xl md:text-7xl lg:text-8xl text-white uppercase tracking-widest leading-none mb-8">
               Signature<br className="hidden md:block" /> Experiences
             </h2>
           </div>
@@ -61,7 +61,7 @@ const WhatWeOffer = () => {
               viewport={{ once: true, margin: "-50px" }}
               transition={{ duration: 0.5, delay: i * 0.1 }}
               onClick={() => handleCardClick(svc)}
-              className="group relative h-[600px] w-full overflow-hidden bg-[#0a0a0a] border border-white/5 cursor-pointer"
+              className="group relative h-[400px] md:h-[600px] w-full overflow-hidden bg-[#0a0a0a] border border-white/5 cursor-pointer"
             >
               {/* Background Image */}
               <div 
@@ -72,24 +72,28 @@ const WhatWeOffer = () => {
               <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent opacity-70 group-hover:opacity-80 transition-opacity duration-700"></div>
 
               {/* Default Content */}
-              <div className="absolute inset-0 p-10 flex flex-col justify-end transition-transform duration-700 group-hover:-translate-y-8">
+              <div className="absolute inset-0 p-10 flex flex-col justify-end transition-transform duration-700 md:group-hover:-translate-y-8">
                 <h3 className="font-oswald text-4xl md:text-5xl text-white uppercase tracking-widest leading-none mb-6">
                   {svc.name}
                 </h3>
-                <div className="h-[1px] w-12 bg-white/20 mb-6 group-hover:w-full transition-all duration-700 ease-in-out"></div>
+                <div className="h-[1px] w-12 bg-white/20 mb-6 md:group-hover:w-full transition-all duration-700 ease-in-out"></div>
                 
-                {/* Hidden Description (Reveals on Hover) */}
-                <div className="h-0 opacity-0 group-hover:h-auto group-hover:opacity-100 overflow-hidden transition-all duration-700 delay-100">
+                {/* Hidden Description (Reveals on Hover on Desktop, Hidden on Mobile) */}
+                <div className="hidden md:block h-0 opacity-0 group-hover:h-auto group-hover:opacity-100 overflow-hidden transition-all duration-700 delay-100">
                   <p className="font-sans text-xs text-gray-300 tracking-wider leading-relaxed mb-6">
                     {svc.description}
                   </p>
-                  <span className="inline-block text-[9px] font-sans text-white uppercase tracking-[0.3em] border border-white/30 px-6 py-3 hover:bg-white hover:text-black transition-colors">
-                    {svc.name.toLowerCase() === 'wedding' 
-                      ? 'Explore Wedding' 
-                      : svc.subServices?.length > 0 
-                        ? 'View Options' 
-                        : 'View Details'}
-                  </span>
+                </div>
+                
+                {/* View Gallery Button - Always visible on mobile, visible on hover on desktop */}
+                <div className="block md:hidden md:group-hover:block transition-all duration-700">
+                  <Link 
+                    to={`/portfolio?service=${encodeURIComponent(svc.slug)}`}
+                    onClick={(e) => e.stopPropagation()} 
+                    className="inline-block text-[9px] font-sans text-white uppercase tracking-[0.3em] border border-white/30 px-6 py-3 hover:bg-white hover:text-black transition-colors"
+                  >
+                    View Gallery
+                  </Link>
                 </div>
               </div>
 

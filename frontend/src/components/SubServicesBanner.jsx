@@ -45,11 +45,15 @@ const SubServicesBanner = () => {
   if (subServices.length === 0) return null;
 
   return (
-    <section ref={containerRef} className="relative w-full py-16 md:py-0 md:h-[80vh] md:min-h-[600px] flex items-center justify-center border-y border-white/5 overflow-hidden">
+    <section ref={containerRef} className="relative w-full py-32 md:py-0 h-[60vh] md:h-[80vh] min-h-[400px] md:min-h-[600px] flex items-center justify-center border-y border-white/5 overflow-hidden">
       {/* Background Image - Cinematic full screen banner */}
       <div 
-        className="absolute inset-0 bg-cover bg-center bg-fixed opacity-70 pointer-events-none"
+        className="absolute inset-0 bg-cover bg-center bg-fixed opacity-70 pointer-events-none hidden md:block"
         style={{ backgroundImage: `url('/images/banner_bg.webp')` }}
+      ></div>
+      <div 
+        className="absolute inset-0 bg-cover bg-center bg-fixed opacity-70 pointer-events-none md:hidden"
+        style={{ backgroundImage: `url('/images/mobile.jpeg')` }}
       ></div>
       <div className="absolute inset-0 bg-gradient-to-b from-[#0a0a0a] via-black/40 to-[#0a0a0a]"></div>
 
@@ -64,9 +68,12 @@ const SubServicesBanner = () => {
           <h4 className="font-sans text-xs md:text-sm text-gray-400 uppercase tracking-[0.4em] mb-4">
             Specialized Sessions
           </h4>
-          <h2 className="font-oswald font-bold text-5xl md:text-7xl text-white uppercase tracking-widest mb-8 md:mb-12 drop-shadow-2xl">
+          <h2 className="font-oswald font-bold text-5xl md:text-7xl text-white uppercase tracking-widest mb-6 drop-shadow-2xl">
             Book Your Slot
           </h2>
+          <p className="font-sans text-gray-300 text-sm md:text-base max-w-2xl mx-auto mb-8 md:mb-12 leading-relaxed">
+            Ready to craft your cinematic story? Explore our specialized sessions and reserve your date with our expert team today.
+          </p>
         </motion.div>
 
         <motion.div 

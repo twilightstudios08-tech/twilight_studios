@@ -5,6 +5,7 @@ const bookingSchema = new mongoose.Schema({
   email: { type: String, required: true },
   phone: { type: String, required: true },
   bookingType: { type: String, enum: ['Client', 'Studio'], default: 'Client' },
+  isSubscription: { type: Boolean, default: false },
   studioName: { type: String }, // For Studio bookings
   babyAge: { type: String },
   shootType: { type: String, required: function() { return this.bookingType === 'Client'; } }, 

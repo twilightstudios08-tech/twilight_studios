@@ -21,6 +21,31 @@ const AdminDashboard = () => {
   const [landingPages, setLandingPages] = useState([]);
   const [teamMembers, setTeamMembers] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isGlobalSubmitting, setIsGlobalSubmitting] = useState(false);
+  
+  useEffect(() => {
+    const reqInterceptor = axios.interceptors.request.use(config => {
+      if (['post', 'put', 'patch', 'delete'].includes(config.method)) {
+        setIsGlobalSubmitting(true);
+      }
+      return config;
+    });
+    const resInterceptor = axios.interceptors.response.use(
+      response => {
+        setIsGlobalSubmitting(false);
+        return response;
+      },
+      error => {
+        setIsGlobalSubmitting(false);
+        return Promise.reject(error);
+      }
+    );
+    return () => {
+      axios.interceptors.request.eject(reqInterceptor);
+      axios.interceptors.response.eject(resInterceptor);
+    };
+  }, []);
   
   // Edit States
   const [editingContent, setEditingContent] = useState(null);
@@ -57,7 +82,40 @@ const AdminDashboard = () => {
   // Bookings Filter and Modal State
   const [editingBooking, setEditingBooking] = useState(null);
   const [bookingMonthFilter, setBookingMonthFilter] = useState('');
+  const [bookingStatusFilter, setBookingStatusFilter] = useState('All Bookings');
   
+  // Subscriptions Feature
+  const [isSubscriptionModalOpen, setIsSubscriptionModalOpen] = useState(false);
+  const [editingSubscriptionId, setEditingSubscriptionId] = useState(null);
+
+  const getMonthDateString = (monthsOffset) => {
+    const d = new Date();
+    d.setMonth(d.getMonth() + monthsOffset);
+    return d.toISOString().split('T')[0];
+  };
+
+  const [subscriptionData, setSubscriptionData] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    duration: 1,
+    months: [{ date: getMonthDateString(0), slot: 'Morning', mainService: '', shootType: '', package: '' }]
+  });
+  const [subscriptions, setSubscriptions] = useState([]);
+  const [showSubscriptionsView, setShowSubscriptionsView] = useState(false);
+  
+  // Studio Page State
+  const [studioData, setStudioData] = useState({
+    name: 'Twilight Studios',
+    description: '',
+    heroImageDesktop: '',
+    heroImageMobile: '',
+    threeSixtyImage: '',
+    mapEmbedUrl: '',
+    images: [],
+    videos: []
+  });
+
   // Studio Booking State
   const [bookingStudio, setBookingStudio] = useState(false);
   const [studioBookingData, setStudioBookingData] = useState({ name: '', email: '', phone: '', studioName: '', date: '', slots: [] });
@@ -93,36 +151,54 @@ const AdminDashboard = () => {
   const fetchData = async () => {
     try {
       setIsLoading(true);
-      const [contentRes, servicesRes, themesRes, themeCategoriesRes, galleryRes, galleryCatsRes, bookingsRes, heroRes, settingsRes, inquiriesRes, testimonialsRes, landingPagesRes, teamRes] = await Promise.all([
-        axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/content`).catch(() => ({ data: [] })),
-        axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/services`).catch(() => ({ data: [] })),
-        axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/themes`).catch(() => ({ data: [] })),
-        axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/theme-categories`).catch(() => ({ data: [] })),
-        axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/gallery`).catch(() => ({ data: [] })),
-        axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/gallery-categories`).catch(() => ({ data: [] })),
-        axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/bookings`).catch(() => ({ data: [] })),
-        axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/hero`).catch(() => ({ data: [] })),
-        axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/settings`).catch(() => ({ data: { blockedWeekdays: [], metaPixelId: '', googleAnalyticsId: '' } })),
-        axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/inquiries`).catch(() => ({ data: [] })),
-        axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/testimonials/admin`).catch(() => ({ data: [] })),
-        axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/landing-pages`).catch(() => ({ data: [] })),
-        axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/team`).catch(() => ({ data: [] }))
+      const [
+        contentRes, 
+        servicesRes, 
+        themesRes, 
+        themeCatsRes, 
+        galleryRes, 
+        galleryCatsRes,
+        bookingsRes,
+        inquiriesRes,
+        heroRes,
+        settingsRes,
+        testimonialsRes,
+        landingPagesRes,
+        teamRes,
+        studioRes,
+        subscriptionsRes
+      ] = await Promise.all([
+        axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/content`),
+        axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/services`),
+        axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/themes`),
+        axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/theme-categories`),
+        axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/gallery`),
+        axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/gallery-categories`),
+        axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/bookings`),
+        axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/inquiries`),
+        axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/hero`),
+        axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/settings`),
+        axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/testimonials`),
+        axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/landing-pages`),
+        axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/team`),
+        axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/studio`),
+        axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/subscriptions`)
       ]);
-      
       setContent(contentRes.data);
       setServices(servicesRes.data);
       setThemes(themesRes.data);
-      setThemeCategories(themeCategoriesRes.data);
+      setThemeCategories(themeCatsRes.data);
       setGallery(galleryRes.data);
-      setGalleryCategoriesData(galleryCatsRes.data || []);
-      setBookings(bookingsRes.data || []);
-      setInquiries(inquiriesRes.data || []);
+      setGalleryCategoriesData(galleryCatsRes.data);
+      setBookings(bookingsRes.data);
+      setInquiries(inquiriesRes.data);
       setHeroSlides(heroRes.data);
-      setSettings(settingsRes.data || { blockedWeekdays: [], metaPixelId: '', googleAnalyticsId: '' });
-      setTestimonials(testimonialsRes.data || []);
-      setLandingPages(landingPagesRes.data || []);
-      setTeamMembers(teamRes.data || []);
-      
+      setSettings(settingsRes.data);
+      setTestimonials(testimonialsRes.data);
+      setLandingPages(landingPagesRes.data);
+      setTeamMembers(teamRes.data);
+      if(studioRes.data) setStudioData(studioRes.data);
+      setSubscriptions(subscriptionsRes.data);
       setIsLoading(false);
     } catch (error) {
       console.error("Error fetching data:", error);
@@ -580,6 +656,119 @@ const AdminDashboard = () => {
     return matchesSearch && matchesFilter;
   });
 
+  // Handle Subscription Form
+  const handleSubscriptionDurationChange = (e) => {
+    const newDuration = parseInt(e.target.value);
+    const newMonths = [...subscriptionData.months];
+    if (newDuration > newMonths.length) {
+      for (let i = newMonths.length; i < newDuration; i++) {
+        // Inherit service options from the first month if available
+        const template = newMonths[0] || { mainService: '', shootType: '', package: '' };
+        newMonths.push({ 
+          date: getMonthDateString(i), 
+          slot: 'Morning', 
+          mainService: template.mainService, 
+          shootType: template.shootType, 
+          package: template.package 
+        });
+      }
+    } else {
+      newMonths.length = newDuration;
+    }
+    setSubscriptionData({ ...subscriptionData, duration: newDuration, months: newMonths });
+  };
+
+  const handleSubscriptionSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      // Validate all required fields
+      for (const m of subscriptionData.months) {
+        if (!m.date || !m.slot || !m.shootType || !m.package || !m.mainService) {
+          alert('Please fill out all fields for every month.');
+          return;
+        }
+      }
+
+      if (editingSubscriptionId) {
+        await axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/subscriptions/${editingSubscriptionId}`, subscriptionData);
+        alert('Subscription updated successfully!');
+      } else {
+        await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/subscriptions`, subscriptionData);
+        alert('Subscription created successfully!');
+      }
+      
+      setIsSubscriptionModalOpen(false);
+      setEditingSubscriptionId(null);
+      setSubscriptionData({
+        name: '', email: '', phone: '', duration: 1,
+        months: [{ date: getMonthDateString(0), slot: 'Morning', mainService: '', shootType: '', package: '' }]
+      });
+      fetchData();
+    } catch (error) {
+      console.error(error);
+      alert(error.response?.data?.message || 'Error creating subscription');
+    }
+  };
+
+  const handleDeleteSubscription = async (id) => {
+    if (window.confirm('Delete this subscription and all its associated bookings?')) {
+      try {
+        await axios.delete(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/subscriptions/${id}`);
+        fetchData();
+      } catch (error) {
+        console.error(error);
+      }
+    }
+  };
+
+  const handleUpdateSubscriptionStatus = async (id, status) => {
+    try {
+      await axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/subscriptions/${id}/status`, { status });
+      fetchData();
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const handleEditSubscription = (sub) => {
+    setEditingSubscriptionId(sub._id);
+    setSubscriptionData({
+      name: sub.name,
+      email: sub.email,
+      phone: sub.phone,
+      duration: sub.duration,
+      months: sub.bookings.map(b => {
+        // Find main service id for the booking
+        let mainSvcId = '';
+        services.forEach(s => {
+          if (s.subServices && s.subServices.find(subSvc => subSvc.name === b.shootType)) {
+            mainSvcId = s._id;
+          }
+        });
+
+        return {
+          date: b.date,
+          slot: b.slot,
+          mainService: mainSvcId,
+          shootType: b.shootType,
+          package: b.package,
+          status: b.status
+        };
+      })
+    });
+    setIsSubscriptionModalOpen(true);
+  };
+
+  const handleToggleSessionStatus = async (bookingId, currentStatus) => {
+    try {
+      const newStatus = currentStatus === 'Finished' ? 'Pending' : 'Finished';
+      await axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/bookings/${bookingId}`, { status: newStatus });
+      fetchData();
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
   // Glassmorphism classes
   const glassPanel = "bg-white/5 backdrop-blur-xl border border-white/10 shadow-[0_8px_32px_0_rgba(0,0,0,0.37)] rounded-2xl";
   const handleSaveTestimonial = async (e, tData) => {
@@ -640,23 +829,42 @@ const AdminDashboard = () => {
     }
   };
 
+  const handleSaveStudio = async (e) => {
+    e.preventDefault();
+    try {
+      await axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/studio`, studioData);
+      alert('Studio settings saved successfully!');
+    } catch (err) {
+      console.error(err);
+      alert('Error saving studio settings');
+    }
+  };
+
   const glassInput = "w-full bg-black/20 border border-white/10 rounded-xl p-3 text-white focus:border-primary/50 focus:bg-white/5 outline-none transition-all";
 
   return (
-    <div className="flex h-screen bg-[#050505] text-white overflow-hidden selection:bg-primary/30">
+    <div className="flex h-screen bg-[#050505] text-white overflow-hidden selection:bg-primary/30 relative">
       
+      {/* Mobile Menu Overlay */}
+      {isMobileMenuOpen && (
+        <div 
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-30 md:hidden"
+          onClick={() => setIsMobileMenuOpen(false)}
+        />
+      )}
+
       {/* Sidebar with Glassmorphism */}
-      <div className="w-72 bg-black/40 backdrop-blur-2xl border-r border-white/5 flex flex-col relative z-20 shadow-[4px_0_24px_rgba(0,0,0,0.5)]">
-        <div className="p-8 border-b border-white/5">
+      <div className={`fixed inset-y-0 left-0 transform ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'} md:relative md:translate-x-0 transition duration-300 ease-in-out z-40 w-72 bg-black/80 md:bg-black/40 backdrop-blur-2xl border-r border-white/5 flex flex-col shadow-[4px_0_24px_rgba(0,0,0,0.5)]`}>
+        <div className="p-8 border-b border-white/5 flex justify-between items-center">
           <h2 className="text-2xl font-oswald font-bold text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-500 tracking-widest uppercase">
             Twilight OS
           </h2>
         </div>
         <nav className="flex-1 p-6 space-y-3 overflow-y-auto custom-scrollbar">
-          {['cms', 'hero', 'landing pages', 'services', 'themes', 'gallery', 'bookings', 'slots', 'inquiries', 'customers', 'testimonials', 'team', 'developer options'].map(tab => (
+          {['cms', 'hero', 'landing pages', 'studio', 'services', 'themes', 'gallery', 'bookings', 'slots', 'inquiries', 'customers', 'testimonials', 'team', 'developer options'].map(tab => (
             <button 
               key={tab}
-              onClick={() => setActiveTab(tab)}
+              onClick={() => { setActiveTab(tab); setIsMobileMenuOpen(false); }}
               className={`w-full flex items-center gap-4 px-5 py-4 rounded-xl text-xs font-sans uppercase tracking-[0.2em] transition-all duration-300 ${
                 activeTab === tab 
                 ? 'bg-gradient-to-r from-white/10 to-transparent text-white border-l-2 border-white shadow-[inset_0_1px_0_0_rgba(255,255,255,0.1)]' 
@@ -675,10 +883,27 @@ const AdminDashboard = () => {
       </div>
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col relative overflow-hidden">
+      <div className="flex-1 flex flex-col relative overflow-hidden w-full">
+        {/* Mobile Header Toggle */}
+        <div className="md:hidden flex items-center justify-between p-4 border-b border-white/5 bg-black/40 backdrop-blur-md z-20">
+          <h2 className="text-lg font-oswald font-bold text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-500 tracking-widest uppercase">
+            Twilight OS
+          </h2>
+          <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="text-white p-2 focus:outline-none">
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              {isMobileMenuOpen ? (
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              ) : (
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              )}
+            </svg>
+          </button>
+        </div>
+
         {/* Decorative Background Glows */}
         <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-900/20 blur-[120px] rounded-full pointer-events-none"></div>
         <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-purple-900/20 blur-[120px] rounded-full pointer-events-none"></div>
+
 
         <header className="h-20 backdrop-blur-md border-b border-white/5 flex items-center justify-between px-10 relative z-10">
           <h1 className="text-xl font-oswald text-white uppercase tracking-[0.3em] bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400">
@@ -725,7 +950,7 @@ const AdminDashboard = () => {
                           <label className="block text-xs uppercase text-gray-500 mb-2">Google Analytics Measurement ID</label>
                           <input type="text" className={glassInput} placeholder="e.g. G-XXXXXXXXXX" value={settings.googleAnalyticsId || ''} onChange={e => setSettings({...settings, googleAnalyticsId: e.target.value})} />
                         </div>
-                        <button type="submit" className="px-6 py-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs uppercase tracking-widest transition-all">Save Tracking IDs</button>
+                        <button type="submit" disabled={isGlobalSubmitting} className="px-6 py-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs uppercase tracking-widest transition-all disabled:opacity-50 disabled:cursor-not-allowed">{isGlobalSubmitting ? 'Saving...' : 'Save Tracking IDs'}</button>
                       </form>
                     </div>
 
@@ -747,7 +972,7 @@ const AdminDashboard = () => {
                           </textarea>
                           <p className="text-[10px] text-gray-500 mt-1 uppercase tracking-widest">These emails will receive new booking notifications.</p>
                         </div>
-                        <button type="submit" className="px-6 py-3 rounded-xl bg-green-600 hover:bg-green-500 text-white font-bold text-xs uppercase tracking-widest transition-all">Save Contact Info</button>
+                        <button type="submit" disabled={isGlobalSubmitting} className="px-6 py-3 rounded-xl bg-green-600 hover:bg-green-500 text-white font-bold text-xs uppercase tracking-widest transition-all disabled:opacity-50 disabled:cursor-not-allowed">{isGlobalSubmitting ? 'Saving...' : 'Save Contact Info'}</button>
                       </form>
                     </div>
 
@@ -785,7 +1010,7 @@ const AdminDashboard = () => {
                              )}
                              <div className="flex justify-end gap-3 pt-4">
                                <button type="button" onClick={() => setEditingContent(null)} className="px-6 py-3 rounded-xl bg-transparent border border-white/10 text-xs uppercase hover:bg-white/5 transition-colors">Cancel</button>
-                               <button type="submit" className="px-6 py-3 rounded-xl bg-white text-black font-bold text-xs uppercase hover:scale-105 transition-transform shadow-[0_0_20px_rgba(255,255,255,0.2)]">Save Changes</button>
+                               <button type="submit" disabled={isGlobalSubmitting} className="px-6 py-3 rounded-xl bg-white text-black font-bold text-xs uppercase hover:scale-105 transition-transform shadow-[0_0_20px_rgba(255,255,255,0.2)] disabled:opacity-50 disabled:cursor-not-allowed">{isGlobalSubmitting ? 'Saving...' : 'Save Changes'}</button>
                              </div>
                           </form>
                         ) : (
@@ -870,7 +1095,7 @@ const AdminDashboard = () => {
                          </div>
                          <div className="flex justify-end gap-3 pt-6">
                            <button type="button" onClick={() => setEditingHero(null)} className="px-6 py-3 rounded-xl bg-white/5 text-xs uppercase hover:bg-white/10 transition-colors">Cancel</button>
-                           <button type="submit" className="px-6 py-3 rounded-xl bg-blue-500 text-white font-bold text-xs uppercase hover:shadow-[0_0_20px_rgba(59,130,246,0.4)] transition-all">Save Slide</button>
+                           <button type="submit" disabled={isGlobalSubmitting} className="px-6 py-3 rounded-xl bg-blue-500 text-white font-bold text-xs uppercase hover:shadow-[0_0_20px_rgba(59,130,246,0.4)] transition-all disabled:opacity-50 disabled:cursor-not-allowed">{isGlobalSubmitting ? 'Saving...' : 'Save Slide'}</button>
                          </div>
                        </form>
                      </motion.div>
@@ -1103,10 +1328,97 @@ const AdminDashboard = () => {
 
                         <div className="flex justify-end gap-3 pt-6 border-t border-white/5">
                           <button type="button" onClick={() => setEditingLandingPage(null)} className="px-6 py-3 rounded-xl bg-white/5 text-xs uppercase hover:bg-white/10 transition-colors">Cancel</button>
-                          <button type="submit" className="px-8 py-3 rounded-xl bg-emerald-500 text-white font-bold text-xs uppercase shadow-[0_0_20px_rgba(16,185,129,0.3)] hover:scale-105 transition-all">Save Landing Page</button>
+                          <button type="submit" disabled={isGlobalSubmitting} className="px-8 py-3 rounded-xl bg-emerald-500 text-white font-bold text-xs uppercase shadow-[0_0_20px_rgba(16,185,129,0.3)] hover:scale-105 transition-all disabled:opacity-50 disabled:cursor-not-allowed">{isGlobalSubmitting ? 'Saving...' : 'Save Landing Page'}</button>
                         </div>
                       </form>
                     </motion.div>
+                  </div>
+                )}
+
+                {/* STUDIO TAB */}
+                {activeTab === 'studio' && (
+                  <div className="space-y-8">
+                    <div className="flex justify-between items-center bg-gradient-to-r from-amber-900/20 to-transparent p-6 rounded-2xl border border-amber-500/20">
+                      <div>
+                        <h2 className="text-lg font-oswald text-white uppercase tracking-widest mb-1">Studio Page Settings</h2>
+                        <p className="text-xs text-amber-300/70 tracking-wide">Manage the dedicated Studio page content, images, videos, maps and 360 view.</p>
+                      </div>
+                    </div>
+
+                    <form onSubmit={handleSaveStudio} className="space-y-6">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className={glassPanel}>
+                          <h3 className="text-sm text-gray-400 uppercase tracking-widest mb-4">Basic Info</h3>
+                          <label className="block text-[10px] text-gray-500 uppercase tracking-widest mb-2">Studio Name</label>
+                          <input type="text" required className={`${glassInput} mb-4`} value={studioData.name} onChange={e => setStudioData({...studioData, name: e.target.value})} />
+                          
+                          <label className="block text-[10px] text-gray-500 uppercase tracking-widest mb-2">Description</label>
+                          <textarea rows="3" className={`${glassInput} mb-4`} value={studioData.description} onChange={e => setStudioData({...studioData, description: e.target.value})}></textarea>
+                          
+                          <label className="block text-[10px] text-gray-500 uppercase tracking-widest mb-2 mt-4">360° Image URL</label>
+                          <DragDropImageUploader disableCompression={true} currentImage={studioData.threeSixtyImage} onUploadSuccess={(url) => setStudioData({...studioData, threeSixtyImage: url})} />
+
+                          <label className="block text-[10px] text-gray-500 uppercase tracking-widest mb-2">Google Map Embed URL / src</label>
+                          <input type="text" className={`${glassInput} mb-4`} placeholder="https://www.google.com/maps/embed?pb=..." value={studioData.mapEmbedUrl} onChange={e => setStudioData({...studioData, mapEmbedUrl: e.target.value})} />
+                        </div>
+
+                        <div className={glassPanel}>
+                          <h3 className="text-sm text-gray-400 uppercase tracking-widest mb-4">Hero Images</h3>
+                          <label className="block text-[10px] text-gray-500 uppercase tracking-widest mb-2">Desktop Hero URL</label>
+                          <DragDropImageUploader currentImage={studioData.heroImageDesktop} aspect={16/9} onUploadSuccess={(url) => setStudioData({...studioData, heroImageDesktop: url})} />
+                          
+                          <label className="block text-[10px] text-gray-500 uppercase tracking-widest mb-2 mt-4">Mobile Hero URL</label>
+                          <DragDropImageUploader currentImage={studioData.heroImageMobile} aspect={9/16} onUploadSuccess={(url) => setStudioData({...studioData, heroImageMobile: url})} />
+                        </div>
+                      </div>
+
+                      <div className={glassPanel}>
+                        <h3 className="text-sm text-gray-400 uppercase tracking-widest mb-4">Studio Image Gallery</h3>
+                        <DragDropImageUploader currentImage={''} multiple={true} onUploadSuccess={(urls) => {
+                          const newUrls = Array.isArray(urls) ? urls : [urls];
+                          setStudioData({...studioData, images: [...(studioData.images || []), ...newUrls]});
+                        }} />
+                        <div className="flex flex-wrap gap-4 mt-4">
+                          {(studioData.images || []).map((img, idx) => (
+                            <div key={idx} className="relative group w-32 h-32 rounded overflow-hidden">
+                              <img src={img} className="w-full h-full object-cover" />
+                              <button type="button" onClick={() => {
+                                const newArr = [...(studioData.images || [])];
+                                newArr.splice(idx, 1);
+                                setStudioData({...studioData, images: newArr});
+                              }} className="absolute top-1 right-1 w-6 h-6 bg-red-500 rounded-full text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">×</button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className={glassPanel}>
+                        <h3 className="text-sm text-gray-400 uppercase tracking-widest mb-4">Studio Video Gallery (YouTube / Cloudinary URLs)</h3>
+                        <button type="button" onClick={() => setStudioData({...studioData, videos: [...(studioData.videos || []), '']})} className="px-4 py-2 border border-white/20 text-xs rounded hover:bg-white/10 mb-4 inline-block">+ Add Video</button>
+                        <div className="space-y-3">
+                          {(studioData.videos || []).map((vid, idx) => (
+                            <div key={idx} className="flex gap-2 items-center">
+                              <input type="text" placeholder="https://youtube.com/..." className={glassInput} value={vid} onChange={e => {
+                                const newArr = [...(studioData.videos || [])];
+                                newArr[idx] = e.target.value;
+                                setStudioData({...studioData, videos: newArr});
+                              }} />
+                              <button type="button" onClick={() => {
+                                const newArr = [...(studioData.videos || [])];
+                                newArr.splice(idx, 1);
+                                setStudioData({...studioData, videos: newArr});
+                              }} className="px-4 py-3 bg-red-500/20 text-red-400 rounded-xl hover:bg-red-500 hover:text-white transition-colors">×</button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="flex justify-end mt-6">
+                        <button type="submit" disabled={isGlobalSubmitting} className="px-8 py-3 rounded-xl bg-amber-500 text-black font-bold text-xs uppercase tracking-widest hover:bg-amber-400 shadow-[0_0_20px_rgba(245,158,11,0.3)] hover:scale-105 transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+                          {isGlobalSubmitting ? 'Saving...' : 'Save Studio Settings'}
+                        </button>
+                      </div>
+                    </form>
                   </div>
                 )}
 
@@ -1227,7 +1539,7 @@ const AdminDashboard = () => {
 
                          <div className="flex justify-end gap-3 pt-6 border-t border-white/5">
                            <button type="button" onClick={() => setEditingService(null)} className="px-6 py-3 rounded-xl bg-white/5 text-xs uppercase hover:bg-white/10 transition-colors">Cancel</button>
-                           <button type="submit" className="px-8 py-3 rounded-xl bg-white text-black font-bold text-xs uppercase shadow-[0_0_20px_rgba(255,255,255,0.2)] hover:scale-105 transition-all">Save All Changes</button>
+                           <button type="submit" disabled={isGlobalSubmitting} className="px-8 py-3 rounded-xl bg-white text-black font-bold text-xs uppercase shadow-[0_0_20px_rgba(255,255,255,0.2)] hover:scale-105 transition-all disabled:opacity-50 disabled:cursor-not-allowed">{isGlobalSubmitting ? 'Saving...' : 'Save All Changes'}</button>
                          </div>
                        </form>
                      </motion.div>
@@ -1497,7 +1809,7 @@ const AdminDashboard = () => {
                          
                          <div className="flex justify-end gap-3 pt-6 border-t border-white/5">
                            <button type="button" onClick={() => setEditingThemeCategory(null)} className="px-6 py-3 rounded-xl bg-white/5 text-xs uppercase hover:bg-white/10 transition-colors">Cancel</button>
-                           <button type="submit" className="px-6 py-3 rounded-xl bg-purple-500 text-white font-bold text-xs uppercase hover:shadow-[0_0_20px_rgba(168,85,247,0.4)] transition-all">Save Category</button>
+                           <button type="submit" disabled={isGlobalSubmitting} className="px-6 py-3 rounded-xl bg-purple-500 text-white font-bold text-xs uppercase hover:shadow-[0_0_20px_rgba(168,85,247,0.4)] transition-all disabled:opacity-50 disabled:cursor-not-allowed">{isGlobalSubmitting ? 'Saving...' : 'Save Category'}</button>
                          </div>
                        </form>
                      </motion.div>
@@ -1541,7 +1853,7 @@ const AdminDashboard = () => {
                          
                          <div className="flex justify-end gap-3 pt-6 border-t border-white/5">
                            <button type="button" onClick={() => setEditingTheme(null)} className="px-6 py-3 rounded-xl bg-white/5 text-xs uppercase hover:bg-white/10 transition-colors">Cancel</button>
-                           <button type="submit" className="px-6 py-3 rounded-xl bg-purple-500 text-white font-bold text-xs uppercase hover:shadow-[0_0_20px_rgba(168,85,247,0.4)] transition-all">Save Theme</button>
+                           <button type="submit" disabled={isGlobalSubmitting} className="px-6 py-3 rounded-xl bg-purple-500 text-white font-bold text-xs uppercase hover:shadow-[0_0_20px_rgba(168,85,247,0.4)] transition-all disabled:opacity-50 disabled:cursor-not-allowed">{isGlobalSubmitting ? 'Saving...' : 'Save Theme'}</button>
                          </div>
                        </form>
                      </motion.div>
@@ -1616,7 +1928,7 @@ const AdminDashboard = () => {
                             value={youtubeLink}
                             onChange={(e) => setYoutubeLink(e.target.value)}
                           />
-                          <button type="submit" className="px-6 py-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs uppercase tracking-widest transition-all whitespace-nowrap">
+                          <button type="submit" disabled={isGlobalSubmitting} className="px-6 py-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs uppercase tracking-widest transition-all whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed">
                             Add Video
                           </button>
                         </form>
@@ -1668,40 +1980,66 @@ const AdminDashboard = () => {
                 )}
 
                 {/* BOOKINGS TABS */}
-                {activeTab === 'bookings' && (
+                {activeTab === 'bookings' && !showSubscriptionsView && (
                   <div className="space-y-6">
-                    <div className="flex justify-between items-center bg-gradient-to-r from-green-900/20 to-transparent p-6 rounded-2xl border border-green-500/20">
+                    <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4 bg-gradient-to-r from-green-900/20 to-transparent p-6 rounded-2xl border border-green-500/20">
                       <div>
                         <h2 className="text-lg font-oswald text-white uppercase tracking-widest mb-1">Bookings Management</h2>
                         <p className="text-xs text-green-300/70 tracking-wide">Review and update client bookings.</p>
                       </div>
-                      <div className="flex items-center gap-4">
+                      <div className="flex flex-wrap items-center gap-2 xl:gap-4 w-full xl:w-auto">
+                        <select 
+                          className="bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-xs text-white outline-none"
+                          value={bookingStatusFilter}
+                          onChange={(e) => setBookingStatusFilter(e.target.value)}
+                        >
+                          <option value="All Bookings">All Statuses</option>
+                          <option value="Pending">Pending</option>
+                          <option value="Contacted">Contacted</option>
+                          <option value="Confirmed">Confirmed</option>
+                          <option value="Finished">Finished</option>
+                          <option value="Cancelled">Cancelled</option>
+                        </select>
                         <input 
                           type="month" 
-                          className="bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-xs text-white outline-none [&::-webkit-calendar-picker-indicator]:invert"
+                          className="bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-xs text-white outline-none [&::-webkit-calendar-picker-indicator]:invert w-full sm:w-auto"
                           value={bookingMonthFilter}
                           onChange={(e) => setBookingMonthFilter(e.target.value)}
                         />
                         <button 
-                          onClick={() => setBookingStudio(true)}
-                          className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs uppercase font-bold tracking-widest rounded-lg transition-colors"
+                          onClick={() => setShowSubscriptionsView(true)}
+                          className="px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white text-xs uppercase font-bold tracking-widest rounded-lg transition-colors w-full sm:w-auto"
                         >
-                          + Book Studio
+                          Subscriptions
+                        </button>
+                        <button 
+                          onClick={() => setBookingStudio(true)}
+                          className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs uppercase font-bold tracking-widest rounded-lg transition-colors w-full sm:w-auto"
+                        >
+                          + Studio
                         </button>
                         <button 
                           onClick={() => setEditingBooking({})}
-                          className="px-4 py-2 bg-green-600 hover:bg-green-500 text-white text-xs uppercase font-bold tracking-widest rounded-lg transition-colors"
+                          className="px-4 py-2 bg-green-600 hover:bg-green-500 text-white text-xs uppercase font-bold tracking-widest rounded-lg transition-colors w-full sm:w-auto"
                         >
-                          + New Booking
+                          + Booking
                         </button>
                       </div>
                     </div>
 
-                    {bookings.filter(b => bookingMonthFilter ? (b.date && b.date.startsWith(bookingMonthFilter)) : true).length === 0 ? (
-                      <div className="text-center py-20 text-gray-500 uppercase tracking-widest">No bookings found for the selected period.</div>
+                    {bookings.filter(b => {
+                      const matchesMonth = bookingMonthFilter ? (b.date && b.date.startsWith(bookingMonthFilter)) : true;
+                      const matchesStatus = bookingStatusFilter === 'All Bookings' || b.status === bookingStatusFilter;
+                      return matchesMonth && matchesStatus;
+                    }).length === 0 ? (
+                      <div className="text-center py-20 text-gray-500 uppercase tracking-widest">No bookings found for the selected filters.</div>
                     ) : (
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {bookings.filter(b => bookingMonthFilter ? (b.date && b.date.startsWith(bookingMonthFilter)) : true).map(booking => (
+                        {bookings.filter(b => {
+                          const matchesMonth = bookingMonthFilter ? (b.date && b.date.startsWith(bookingMonthFilter)) : true;
+                          const matchesStatus = bookingStatusFilter === 'All Bookings' || b.status === bookingStatusFilter;
+                          return matchesMonth && matchesStatus;
+                        }).map(booking => (
                           <div key={booking._id} className={`${glassPanel} p-6 flex flex-col relative`}>
                             <button 
                               onClick={() => setEditingBooking(booking)}
@@ -1713,6 +2051,9 @@ const AdminDashboard = () => {
                               <div>
                                 {booking.bookingType === 'Studio' && (
                                   <span className="inline-block bg-blue-600/20 text-blue-400 text-[9px] px-2 py-0.5 rounded uppercase tracking-widest mb-1 border border-blue-500/20">Studio Booking</span>
+                                )}
+                                {booking.isSubscription && (
+                                  <span className="inline-block bg-purple-600/20 text-purple-400 text-[9px] px-2 py-0.5 rounded uppercase tracking-widest mb-1 border border-purple-500/20">Subscription</span>
                                 )}
                                 <h3 className="text-xl text-white font-oswald uppercase tracking-widest">{booking.name}</h3>
                                 <p className="text-xs text-gray-400 font-sans">{booking.phone}</p>
@@ -1765,7 +2106,7 @@ const AdminDashboard = () => {
                                   <input type="number" name="pendingAmount" defaultValue={booking.pendingAmount || 0} className={`${glassInput} py-1 px-2 text-xs text-red-400`} />
                                 </div>
                                 <div className="col-span-3 mt-1">
-                                  <button type="submit" className="w-full py-1.5 bg-blue-500/20 text-blue-400 hover:bg-blue-500 hover:text-white rounded text-[10px] uppercase tracking-widest transition-colors">Update Payment</button>
+                                  <button type="submit" disabled={isGlobalSubmitting} className="w-full py-1.5 bg-blue-500/20 text-blue-400 hover:bg-blue-500 hover:text-white rounded text-[10px] uppercase tracking-widest transition-colors disabled:opacity-50 disabled:cursor-not-allowed">{isGlobalSubmitting ? 'Updating...' : 'Update Payment'}</button>
                                 </div>
                               </form>
                             </div>
@@ -1917,6 +2258,101 @@ const AdminDashboard = () => {
                         )}
                       </div>
                     </div>
+                  </div>
+                )}
+
+                {/* SUBSCRIPTIONS VIEW */}
+                {activeTab === 'bookings' && showSubscriptionsView && (
+                  <div className="space-y-6">
+                    <div className="flex justify-between items-center bg-gradient-to-r from-purple-900/20 to-transparent p-6 rounded-2xl border border-purple-500/20">
+                      <div>
+                        <div className="flex items-center gap-4 mb-1">
+                          <button 
+                            onClick={() => setShowSubscriptionsView(false)}
+                            className="text-gray-400 hover:text-white transition-colors"
+                          >
+                            ← Back
+                          </button>
+                          <h2 className="text-lg font-oswald text-white uppercase tracking-widest">Subscriptions</h2>
+                        </div>
+                        <p className="text-xs text-purple-300/70 tracking-wide">Manage recurring client bookings.</p>
+                      </div>
+                      <button 
+                        onClick={() => setIsSubscriptionModalOpen(true)}
+                        className="px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white text-xs uppercase font-bold tracking-widest rounded-lg transition-colors"
+                      >
+                        + New Subscription
+                      </button>
+                    </div>
+
+                    {subscriptions.length === 0 ? (
+                      <div className="text-center py-20 text-gray-500 uppercase tracking-widest">No subscriptions found.</div>
+                    ) : (
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {subscriptions.map(sub => (
+                          <div key={sub._id} className={`${glassPanel} p-6 flex flex-col relative`}>
+                            <div className="absolute top-4 right-4 flex gap-2">
+                              <button 
+                                onClick={() => handleEditSubscription(sub)}
+                                className="text-[10px] text-blue-400 hover:text-blue-300 uppercase tracking-widest bg-blue-900/40 px-2 py-1 rounded"
+                              >
+                                Edit
+                              </button>
+                              <button 
+                                onClick={() => handleDeleteSubscription(sub._id)}
+                                className="text-[10px] text-red-400 hover:text-red-300 uppercase tracking-widest bg-red-900/40 px-2 py-1 rounded"
+                              >
+                                Delete
+                              </button>
+                            </div>
+                            <h3 className="text-xl text-white font-oswald uppercase tracking-widest mb-1">{sub.name}</h3>
+                            <p className="text-xs text-gray-400 font-mono mb-1">{sub.phone}</p>
+                            <p className="text-[10px] text-gray-500 mb-4">{sub.email}</p>
+                            
+                            <div className="flex justify-between items-center mb-4">
+                              <span className="text-xs font-bold text-white uppercase tracking-widest bg-white/10 px-2 py-1 rounded">
+                                {sub.duration} Months
+                              </span>
+                              <select 
+                                className="bg-black/60 border border-white/10 rounded px-2 py-1 text-[10px] text-white outline-none uppercase tracking-widest"
+                                value={sub.status || 'Pending'}
+                                onChange={(e) => handleUpdateSubscriptionStatus(sub._id, e.target.value)}
+                              >
+                                <option value="Pending">Pending</option>
+                                <option value="Contacted">Contacted</option>
+                                <option value="Confirmed">Confirmed</option>
+                                <option value="Finished">Finished</option>
+                                <option value="Cancelled">Cancelled</option>
+                              </select>
+                            </div>
+
+                            {/* Linked Bookings summary */}
+                            <div className="mt-2 pt-4 border-t border-white/10">
+                              <h4 className="text-[10px] text-gray-500 uppercase tracking-widest mb-2">Included Sessions:</h4>
+                              <div className="space-y-2 max-h-32 overflow-y-auto pr-2 custom-scrollbar">
+                                {sub.bookings && sub.bookings.map((b, i) => {
+                                  const isFinished = b.status === 'Finished';
+                                  return (
+                                    <div key={i} className={`flex justify-between items-center text-[10px] p-2 rounded ${isFinished ? 'bg-green-900/20 opacity-70' : 'bg-black/40'}`}>
+                                      <div className="flex items-center gap-2">
+                                        <button 
+                                          onClick={() => handleToggleSessionStatus(b._id, b.status)}
+                                          className={`w-4 h-4 rounded-full border flex items-center justify-center transition-colors ${isFinished ? 'bg-green-500 border-green-500' : 'border-gray-500 hover:border-gray-300'}`}
+                                        >
+                                          {isFinished && <svg className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>}
+                                        </button>
+                                        <span className={isFinished ? 'text-gray-500 line-through' : 'text-gray-300'}>{new Date(b.date).toLocaleDateString()} • {b.slot}</span>
+                                      </div>
+                                      <span className={`${isFinished ? 'text-gray-500 line-through' : 'text-purple-300'} truncate max-w-[100px] ml-2 text-right`} title={b.shootType}>{b.shootType}</span>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 )}
 
@@ -2200,7 +2636,7 @@ const AdminDashboard = () => {
                     ></textarea>
                     <div className="flex justify-end gap-3">
                       <button type="button" onClick={() => setFollowUpModal(null)} className="px-4 py-2 rounded-lg bg-white/5 text-xs uppercase hover:bg-white/10 transition-colors">Close</button>
-                      <button type="submit" className="px-4 py-2 rounded-lg bg-purple-500 hover:bg-purple-400 text-white font-bold text-xs uppercase tracking-widest transition-colors">Add Note</button>
+                      <button type="submit" disabled={isGlobalSubmitting} className="px-4 py-2 rounded-lg bg-purple-500 hover:bg-purple-400 text-white font-bold text-xs uppercase tracking-widest transition-colors disabled:opacity-50 disabled:cursor-not-allowed">{isGlobalSubmitting ? 'Adding...' : 'Add Note'}</button>
                     </div>
                   </form>
                 </motion.div>
@@ -2284,8 +2720,8 @@ const AdminDashboard = () => {
                       </div>
                       <div className="flex justify-end gap-3 pt-6 border-t border-white/5">
                         <button type="button" onClick={() => setEditingTestimonial(null)} className="px-6 py-3 rounded-xl bg-white/5 text-xs uppercase hover:bg-white/10 transition-colors">Cancel</button>
-                        <button type="submit" className="px-6 py-3 rounded-xl bg-amber-500 text-white font-bold text-xs uppercase hover:shadow-[0_0_20px_rgba(245,158,11,0.4)] transition-all flex items-center gap-2">
-                          <span>&#10003;</span> Save
+                        <button type="submit" disabled={isGlobalSubmitting} className="px-6 py-3 rounded-xl bg-amber-500 text-white font-bold text-xs uppercase hover:shadow-[0_0_20px_rgba(245,158,11,0.4)] transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
+                          {isGlobalSubmitting ? 'Saving...' : 'Save Testimonial'}
                         </button>
                       </div>
                     </form>
@@ -2397,8 +2833,8 @@ const AdminDashboard = () => {
                     </div>
                     
                     <div className="flex gap-4 pt-4 border-t border-white/10">
-                      <button type="submit" className="px-8 py-3 bg-white text-black font-bold uppercase tracking-widest text-xs flex items-center gap-2 hover:bg-gray-200">
-                        <span>&#10003;</span> SAVE MEMBER
+                      <button type="submit" disabled={isGlobalSubmitting} className="px-8 py-3 bg-white text-black font-bold uppercase tracking-widest text-xs flex items-center gap-2 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed">
+                        {isGlobalSubmitting ? 'Saving...' : 'Save Team Member'}
                       </button>
                       <button type="button" onClick={() => setEditingTeamMember(null)} className="px-8 py-3 border border-white/20 text-white uppercase tracking-widest text-xs hover:bg-white/5">CANCEL</button>
                     </div>
@@ -2657,7 +3093,7 @@ const AdminDashboard = () => {
                   
                   <div className="flex justify-end gap-4 pt-6 border-t border-white/10 mt-6">
                     <button type="button" onClick={() => setEditingBooking(null)} className="px-6 py-3 bg-black border border-white/20 text-white hover:bg-white/10 rounded-lg text-xs uppercase tracking-widest font-bold transition-colors">Cancel</button>
-                    <button type="submit" className="px-6 py-3 bg-green-600 hover:bg-green-500 text-white rounded-lg text-xs uppercase tracking-widest font-bold transition-colors">Save Booking</button>
+                    <button type="submit" disabled={isGlobalSubmitting} className="px-6 py-3 bg-green-600 hover:bg-green-500 text-white rounded-lg text-xs uppercase tracking-widest font-bold transition-colors disabled:opacity-50 disabled:cursor-not-allowed">{isGlobalSubmitting ? 'Saving...' : 'Save Booking'}</button>
                   </div>
                 </form>
               </motion.div>
@@ -2740,7 +3176,157 @@ const AdminDashboard = () => {
                     </div>
                     <div className="md:col-span-2 flex justify-end gap-4 mt-4">
                       <button type="button" onClick={() => setBookingStudio(false)} className="px-6 py-2 border border-white/20 text-white text-xs uppercase tracking-widest rounded hover:bg-white/10 transition-colors">Cancel</button>
-                      <button type="submit" className="px-6 py-2 bg-blue-600 text-white text-xs uppercase font-bold tracking-widest rounded hover:bg-blue-500 transition-colors">Book Studio</button>
+                      <button type="submit" disabled={isGlobalSubmitting} className="px-6 py-2 bg-blue-600 text-white text-xs uppercase font-bold tracking-widest rounded hover:bg-blue-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">{isGlobalSubmitting ? 'Booking...' : 'Book Studio'}</button>
+                    </div>
+                  </form>
+                </motion.div>
+              </div>
+            )}
+
+            {isSubscriptionModalOpen && (
+              <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
+                <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="bg-[#0a0a0a] border border-white/10 rounded-2xl p-6 md:p-8 w-full max-w-4xl max-h-[90vh] overflow-y-auto shadow-2xl my-auto">
+                  <div className="flex justify-between items-center mb-6">
+                    <h3 className="text-xl font-oswald text-white tracking-widest uppercase">Create Subscription</h3>
+                    <button onClick={() => setIsSubscriptionModalOpen(false)} className="text-gray-500 hover:text-white transition-colors">✕</button>
+                  </div>
+                  
+                  <form onSubmit={handleSubscriptionSubmit} className="space-y-8">
+                    {/* Client Info Section */}
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                      <div className="md:col-span-2">
+                        <label className="block text-[10px] text-gray-500 uppercase tracking-widest mb-2">Client Name</label>
+                        <input type="text" required className={glassInput} value={subscriptionData.name} onChange={e => setSubscriptionData({...subscriptionData, name: e.target.value})} />
+                      </div>
+                      <div>
+                        <label className="block text-[10px] text-gray-500 uppercase tracking-widest mb-2">Email</label>
+                        <input type="email" required className={glassInput} value={subscriptionData.email} onChange={e => setSubscriptionData({...subscriptionData, email: e.target.value})} />
+                      </div>
+                      <div>
+                        <label className="block text-[10px] text-gray-500 uppercase tracking-widest mb-2">Phone</label>
+                        <input type="text" required className={glassInput} value={subscriptionData.phone} onChange={e => setSubscriptionData({...subscriptionData, phone: e.target.value})} />
+                      </div>
+                    </div>
+
+                    <div className="border-t border-white/10 pt-6">
+                      <div className="flex items-center gap-4 mb-6">
+                        <label className="text-sm font-oswald text-white tracking-widest uppercase whitespace-nowrap">Subscription Duration:</label>
+                        <select 
+                          className={`${glassInput} w-32`}
+                          value={subscriptionData.duration}
+                          onChange={handleSubscriptionDurationChange}
+                        >
+                          {[...Array(12)].map((_, i) => (
+                            <option key={i+1} value={i+1} className="bg-[#111] text-white">{i+1} Month{i > 0 && 's'}</option>
+                          ))}
+                        </select>
+                      </div>
+
+                      {/* Monthly Slots Config */}
+                      <div className="space-y-4">
+                        {subscriptionData.months.map((month, index) => (
+                          <div key={index} className="bg-white/5 border border-white/10 p-4 rounded-xl">
+                            <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Month {index + 1}</h4>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+                              <div>
+                                <label className="block text-[10px] text-gray-500 uppercase tracking-widest mb-1">Date</label>
+                                <input 
+                                  type="date" 
+                                  required 
+                                  className={`${glassInput} [&::-webkit-calendar-picker-indicator]:invert`} 
+                                  value={month.date} 
+                                  onChange={e => {
+                                    const newMonths = [...subscriptionData.months];
+                                    newMonths[index].date = e.target.value;
+                                    setSubscriptionData({...subscriptionData, months: newMonths});
+                                  }} 
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-[10px] text-gray-500 uppercase tracking-widest mb-1">Slot</label>
+                                <select 
+                                  required
+                                  className={glassInput}
+                                  value={month.slot}
+                                  onChange={e => {
+                                    const newMonths = [...subscriptionData.months];
+                                    newMonths[index].slot = e.target.value;
+                                    setSubscriptionData({...subscriptionData, months: newMonths});
+                                  }}
+                                >
+                                  <option value="Morning" className="bg-[#111]">Morning</option>
+                                  <option value="Afternoon" className="bg-[#111]">Afternoon</option>
+                                  <option value="Evening" className="bg-[#111]">Evening</option>
+                                </select>
+                              </div>
+                              <div>
+                                <label className="block text-[10px] text-gray-500 uppercase tracking-widest mb-1">Service</label>
+                                <select 
+                                  required
+                                  className={glassInput}
+                                  value={month.mainService}
+                                  onChange={e => {
+                                    const newMonths = [...subscriptionData.months];
+                                    newMonths[index].mainService = e.target.value;
+                                    newMonths[index].shootType = ''; // Reset sub service
+                                    newMonths[index].package = ''; // Reset package
+                                    setSubscriptionData({...subscriptionData, months: newMonths});
+                                  }}
+                                >
+                                  <option value="" className="bg-[#111]">Select Service</option>
+                                  {services.map(s => (
+                                    <option key={s._id} value={s._id} className="bg-[#111] text-white">{s.name}</option>
+                                  ))}
+                                </select>
+                              </div>
+                              <div>
+                                <label className="block text-[10px] text-gray-500 uppercase tracking-widest mb-1">Sub Service</label>
+                                <select 
+                                  required
+                                  className={glassInput}
+                                  value={month.shootType}
+                                  disabled={!month.mainService}
+                                  onChange={e => {
+                                    const newMonths = [...subscriptionData.months];
+                                    newMonths[index].shootType = e.target.value;
+                                    newMonths[index].package = ''; // Reset package
+                                    setSubscriptionData({...subscriptionData, months: newMonths});
+                                  }}
+                                >
+                                  <option value="" className="bg-[#111]">Select Sub Service</option>
+                                  {services.find(s => s._id === month.mainService)?.subServices?.map((sub, idx) => (
+                                    <option key={idx} value={sub.name} className="bg-[#111] text-white">{sub.name}</option>
+                                  ))}
+                                </select>
+                              </div>
+                              <div>
+                                <label className="block text-[10px] text-gray-500 uppercase tracking-widest mb-1">Package</label>
+                                <select 
+                                  required
+                                  className={glassInput}
+                                  value={month.package}
+                                  disabled={!month.shootType}
+                                  onChange={e => {
+                                    const newMonths = [...subscriptionData.months];
+                                    newMonths[index].package = e.target.value;
+                                    setSubscriptionData({...subscriptionData, months: newMonths});
+                                  }}
+                                >
+                                  <option value="" className="bg-[#111]">Select Package</option>
+                                  {services.find(s => s._id === month.mainService)?.subServices?.find(sub => sub.name === month.shootType)?.packages?.map((pkg, idx) => (
+                                    <option key={idx} value={pkg.name} className="bg-[#111] text-white">{pkg.name}</option>
+                                  ))}
+                                </select>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="flex justify-end gap-4 pt-4 border-t border-white/10">
+                      <button type="button" onClick={() => { setIsSubscriptionModalOpen(false); setEditingSubscriptionId(null); }} className="px-6 py-2 border border-white/20 text-white text-xs uppercase tracking-widest rounded hover:bg-white/10 transition-colors">Cancel</button>
+                      <button type="submit" className="px-6 py-2 bg-purple-600 text-white text-xs uppercase font-bold tracking-widest rounded hover:bg-purple-500 transition-colors shadow-[0_0_15px_rgba(147,51,234,0.3)]">{editingSubscriptionId ? 'Save Changes' : 'Create Bookings'}</button>
                     </div>
                   </form>
                 </motion.div>

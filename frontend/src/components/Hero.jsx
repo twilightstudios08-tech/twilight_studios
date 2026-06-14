@@ -3,6 +3,7 @@ import { Swiper, SwiperSlide } from 'swiper/react';
 import { EffectFade, Navigation, Pagination, Autoplay, Parallax } from 'swiper/modules';
 import axios from 'axios';
 import { motion } from 'framer-motion';
+import { Link } from 'react-router-dom';
 
 // Import Swiper styles
 import 'swiper/css';
@@ -16,9 +17,9 @@ const Hero = () => {
   // Helper to optimize Cloudinary URLs
   const optimizeCloudinaryUrl = (url) => {
     if (!url || !url.includes('cloudinary.com')) return url;
-    // Add q_auto:best for maximum quality, f_auto for speed
+    // Add q_auto for optimal quality and w_1920 to prevent loading massive 4K/8K images
     if (url.includes('/upload/q_auto')) return url;
-    return url.replace('/upload/', '/upload/f_auto,q_auto:best/');
+    return url.replace('/upload/', '/upload/f_auto,q_auto,w_1920/');
   };
   const [content, setContent] = useState({ title: 'Timeless & Cinematic Memories.' });
 
@@ -49,8 +50,13 @@ const Hero = () => {
   }, []);
 
   return (
-    <section className="relative w-full h-screen bg-black overflow-hidden group">
-      {slides.length > 0 && (
+    <section id="home" className="relative h-screen w-full bg-black overflow-hidden">
+      {/* Loading State or Swiper */}
+      {slides.length === 0 ? (
+        <div className="absolute inset-0 flex items-center justify-center bg-black">
+          <div className="w-8 h-8 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
+        </div>
+      ) : (
         <Swiper
           modules={[EffectFade, Navigation, Pagination, Autoplay, Parallax]}
           effect="fade"
@@ -126,31 +132,44 @@ const Hero = () => {
                       {slide.titleOutline || content.title.split(' ').slice(1).join(' ')}
                     </h1>
                   )}
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.8, delay: 0.5 }}
+                    className="mt-8 md:mt-12 pointer-events-auto flex justify-center"
+                  >
+                    <Link 
+                      to="/gallery" 
+                      className="inline-block border border-white/50 bg-black/30 backdrop-blur-sm hover:bg-white hover:text-black transition-all duration-500 text-white font-sans text-[10px] md:text-xs uppercase tracking-[0.3em] px-8 py-4"
+                    >
+                      View Gallery
+                    </Link>
+                  </motion.div>
                 </div>
               </div>
             </SwiperSlide>
           ))}
+          
+          {/* Custom Navigation */}
+          <div className="swiper-button-prev-custom absolute top-1/2 left-4 md:left-8 -translate-y-1/2 z-20 cursor-pointer group-hover:opacity-100 opacity-0 transition-opacity duration-500 flex items-center gap-2 md:gap-4">
+            <div className="w-6 md:w-12 h-[1px] bg-white/50 group-hover:bg-white transition-colors"></div>
+            <span className="text-white font-oswald text-[8px] md:text-xs uppercase tracking-[0.3em] -rotate-90 origin-left">Prev</span>
+          </div>
+          
+          <div className="swiper-button-next-custom absolute top-1/2 right-4 md:right-8 -translate-y-1/2 z-20 cursor-pointer group-hover:opacity-100 opacity-0 transition-opacity duration-500 flex items-center gap-2 md:gap-4">
+            <span className="text-white font-oswald text-[8px] md:text-xs uppercase tracking-[0.3em] rotate-90 origin-right">Next</span>
+            <div className="w-6 md:w-12 h-[1px] bg-white/50 group-hover:bg-white transition-colors"></div>
+          </div>
+          
+          {/* Scroll Indicator */}
+          <div className="absolute bottom-12 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center animate-bounce">
+            <div className="relative flex justify-center w-[1px]">
+              <span className="absolute bottom-full mb-4 text-[10px] text-white uppercase tracking-[0.3em] ml-[0.3em] font-sans">Scroll</span>
+              <div className="w-[1px] h-12 bg-gradient-to-b from-white to-transparent"></div>
+            </div>
+          </div>
         </Swiper>
       )}
-
-      {/* Custom Navigation */}
-      <div className="swiper-button-prev-custom absolute top-1/2 left-4 md:left-8 -translate-y-1/2 z-20 cursor-pointer group-hover:opacity-100 opacity-0 transition-opacity duration-500 flex items-center gap-2 md:gap-4">
-        <div className="w-6 md:w-12 h-[1px] bg-white/50 group-hover:bg-white transition-colors"></div>
-        <span className="text-white font-oswald text-[8px] md:text-xs uppercase tracking-[0.3em] -rotate-90 origin-left">Prev</span>
-      </div>
-      
-      <div className="swiper-button-next-custom absolute top-1/2 right-4 md:right-8 -translate-y-1/2 z-20 cursor-pointer group-hover:opacity-100 opacity-0 transition-opacity duration-500 flex items-center gap-2 md:gap-4">
-        <span className="text-white font-oswald text-[8px] md:text-xs uppercase tracking-[0.3em] rotate-90 origin-right">Next</span>
-        <div className="w-6 md:w-12 h-[1px] bg-white/50 group-hover:bg-white transition-colors"></div>
-      </div>
-      
-      {/* Scroll Indicator */}
-      <div className="absolute bottom-12 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center animate-bounce">
-        <div className="relative flex justify-center w-[1px]">
-          <span className="absolute bottom-full mb-4 text-[10px] text-white uppercase tracking-[0.3em] ml-[0.3em] font-sans">Scroll</span>
-          <div className="w-[1px] h-12 bg-gradient-to-b from-white to-transparent"></div>
-        </div>
-      </div>
     </section>
   );
 };

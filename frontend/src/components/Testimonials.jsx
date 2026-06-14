@@ -36,23 +36,19 @@ const Testimonials = () => {
 
   return (
     <section id="testimonials" className="relative w-full py-24 bg-[#0a0a0a] text-white flex flex-col items-center">
-      <h2 className="font-serif text-white text-4xl md:text-5xl mb-16 text-center">
+      <h2 className="font-serif text-white text-3xl md:text-4xl mb-24 md:mb-32 text-center tracking-wide">
         Testimonials
       </h2>
 
-      <div className="max-w-6xl w-full mx-auto px-6 relative flex items-center justify-between">
+      <div className="w-full max-w-4xl mx-auto px-4 sm:px-6 relative flex flex-row items-center justify-center gap-2 sm:gap-8 md:gap-16">
         
         {/* Left Arrow */}
-        <button 
-          onClick={handlePrev}
-          className="text-white opacity-60 hover:opacity-100 transition-opacity p-2 hidden md:block"
-          aria-label="Previous Testimonial"
-        >
-          <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7"></path></svg>
+        <button onClick={handlePrev} className="text-[#a0a0a0] hover:text-white transition-colors text-lg md:text-xl font-light p-2 sm:p-4 z-10 flex-shrink-0">
+          &#8249;
         </button>
-
+        
         {/* Content */}
-        <div className="w-full max-w-4xl mx-auto relative h-[300px] md:h-[250px] flex items-center justify-center text-center px-4">
+        <div className="flex-1 relative h-[300px] md:h-[250px] flex items-center justify-center text-center px-2">
           <AnimatePresence mode="wait">
             <motion.div
               key={currentIndex}
@@ -62,17 +58,17 @@ const Testimonials = () => {
               transition={{ duration: 0.5 }}
               className="absolute inset-0 flex flex-col items-center justify-center"
             >
-              <p className="font-serif font-light text-xl md:text-3xl text-gray-300 italic mb-10 leading-relaxed max-w-3xl">
+              <p className="font-serif font-light text-base md:text-lg text-gray-400 italic mb-10 leading-relaxed max-w-2xl">
                 {current.reviewText}
               </p>
               
-              <div className="flex text-white mb-6 text-2xl gap-1">
+              <div className="flex text-white mb-6 text-[10px] gap-3">
                 {[...Array(current.rating || 5)].map((_, i) => (
                   <span key={i}>★</span>
                 ))}
               </div>
               
-              <h3 className="font-sans text-white uppercase tracking-widest text-sm mb-4">
+              <h3 className="font-sans text-gray-500 uppercase tracking-[0.2em] text-[9px] md:text-[10px] mb-4">
                 {current.authorName}
               </h3>
 
@@ -81,9 +77,9 @@ const Testimonials = () => {
                   href={current.googleReviewUrl} 
                   target="_blank" 
                   rel="noopener noreferrer" 
-                  className="flex items-center gap-2 text-white/60 hover:text-white transition-colors text-[10px] uppercase tracking-[0.2em] font-sans"
+                  className="flex items-center gap-2 text-white/40 hover:text-white transition-colors text-[8px] md:text-[9px] uppercase tracking-[0.3em] font-sans font-bold mt-2"
                 >
-                  <span className="font-bold">G</span> VERIFIED GOOGLE REVIEW &#8599;
+                  G <span className="font-medium tracking-[0.2em]">VERIFIED GOOGLE REVIEW</span> &#8599;
                 </a>
               )}
             </motion.div>
@@ -91,24 +87,10 @@ const Testimonials = () => {
         </div>
 
         {/* Right Arrow */}
-        <button 
-          onClick={handleNext}
-          className="text-white opacity-60 hover:opacity-100 transition-opacity p-2 hidden md:block"
-          aria-label="Next Testimonial"
-        >
-          <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path></svg>
+        <button onClick={handleNext} className="text-[#a0a0a0] hover:text-white transition-colors text-lg md:text-xl font-light p-2 sm:p-4 z-10 flex-shrink-0">
+          &#8250;
         </button>
 
-      </div>
-      
-      {/* Mobile Navigation Arrows */}
-      <div className="flex md:hidden gap-12 mt-8">
-        <button onClick={handlePrev} className="text-white opacity-60 hover:opacity-100 p-4">
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7"></path></svg>
-        </button>
-        <button onClick={handleNext} className="text-white opacity-60 hover:opacity-100 p-4">
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path></svg>
-        </button>
       </div>
 
     </section>

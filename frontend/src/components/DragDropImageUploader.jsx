@@ -5,7 +5,13 @@ import axios from 'axios';
 import imageCompression from 'browser-image-compression';
 import getCroppedImg from '../utils/cropImage';
 
-const DragDropImageUploader = ({ onUploadSuccess, currentImage, multiple = false, aspect = 4 / 5 }) => {
+const DragDropImageUploader = ({ 
+  onUploadSuccess, 
+  currentImage, 
+  aspect = 4 / 5, 
+  multiple = false,
+  disableCompression = false 
+}) => {
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState(null);
   
@@ -64,7 +70,7 @@ const DragDropImageUploader = ({ onUploadSuccess, currentImage, multiple = false
       };
       
       for (const file of files) {
-        const fileToUpload = skipCompression ? file : await imageCompression(file, options);
+        const fileToUpload = (skipCompression || disableCompression) ? file : await imageCompression(file, options);
         const formData = new FormData();
         formData.append('image', fileToUpload);
 

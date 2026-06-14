@@ -16,6 +16,7 @@ import TestimonialsPage from './pages/TestimonialsPage';
 import ServicePortfolio from './pages/ServicePortfolio';
 import ServiceDetails from './pages/ServiceDetails';
 import LandingPage from './pages/LandingPage';
+import Studio from './pages/Studio';
 import WhatsAppButton from './components/WhatsAppButton';
 import Footer from './components/Footer';
 import NoInternetOverlay from './components/NoInternetOverlay';
@@ -161,6 +162,7 @@ function App() {
               <Route path="/book" element={<Layout><Book /></Layout>} />
               <Route path="/contact" element={<Layout><Contact /></Layout>} />
               <Route path="/location/:city" element={<Layout><LocationPage /></Layout>} />
+              <Route path="/studio" element={<Layout><Studio /></Layout>} />
               <Route path="/testimonials" element={<Layout><TestimonialsPage /></Layout>} />
               <Route path="/:slug" element={<Layout><LandingPage /></Layout>} />
 

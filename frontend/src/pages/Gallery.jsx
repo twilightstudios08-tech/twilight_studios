@@ -74,7 +74,7 @@ const Gallery = () => {
 
   return (
     <div className="bg-[#050505] min-h-screen text-white pt-32 pb-24">
-      <div className="max-w-7xl mx-auto px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto px-2 md:px-6 lg:px-8">
         
         <motion.div 
           initial={{ opacity: 0, y: 30 }}
@@ -163,7 +163,7 @@ const Gallery = () => {
                       src={optimizeCloudinaryUrl(img.url, true)} 
                       alt={img.category} 
                       loading="lazy"
-                      className="w-full h-auto object-contain bg-black opacity-80 group-hover:scale-[1.02] group-hover:opacity-100 transition-all duration-700 cursor-pointer" 
+                      className="w-full h-auto object-cover opacity-80 group-hover:scale-[1.02] group-hover:opacity-100 transition-all duration-700 cursor-pointer" 
                     />
                   )}
                   

@@ -42,40 +42,23 @@ const About = () => {
 
 
       <div className="max-w-[90rem] mx-auto px-6 lg:px-12 relative z-10">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
+        <div className="flex flex-col items-center text-center max-w-4xl mx-auto">
           
-          {/* Image */}
-          <motion.div 
-            initial={{ opacity: 0, scale: 0.95 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            viewport={{ once: true, margin: "-100px" }}
-            transition={{ duration: 1.5, ease: "easeOut" }}
-            className="relative h-[60vh] lg:h-[80vh] w-full group overflow-hidden"
-          >
-            <div className="absolute inset-0 bg-gradient-to-r from-black/20 to-transparent z-10 pointer-events-none"></div>
-            <motion.img 
-              src={content?.imageUrl || "https://images.unsplash.com/photo-1600096194534-95cf5ece04cf?q=80&w=1400&auto=format&fit=crop"} 
-              alt="About Twilight Studios" 
-              className="w-full h-full object-cover transition-all duration-1000"
-            />
-            {/* Elegant corner accents */}
-            <div className="absolute top-0 left-0 w-16 h-16 border-t border-l border-white/30 z-20"></div>
-            <div className="absolute bottom-0 right-0 w-16 h-16 border-b border-r border-white/30 z-20"></div>
-          </motion.div>
-
           {/* Text Content */}
           <motion.div 
-            className="flex flex-col justify-center"
+            className="flex flex-col items-center justify-center w-full"
           >
             <motion.div
-              initial={{ opacity: 0, x: 50 }}
-              whileInView={{ opacity: 1, x: 0 }}
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-100px" }}
               transition={{ duration: 1, delay: 0.2 }}
+              className="flex flex-col items-center"
             >
-              <h4 className="font-sans text-[10px] text-gray-500 uppercase tracking-[0.4em] mb-6 flex items-center gap-4">
+              <h4 className="font-sans text-[10px] text-gray-500 uppercase tracking-[0.4em] mb-6 flex items-center justify-center gap-4 w-full">
                 <span className="w-12 h-[1px] bg-gray-500"></span>
                 Behind The Lens
+                <span className="w-12 h-[1px] bg-gray-500"></span>
               </h4>
               
               <h2 className="font-oswald font-bold text-5xl md:text-7xl lg:text-8xl text-white uppercase tracking-widest leading-[1.1] mb-10">
@@ -88,9 +71,9 @@ const About = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-50px" }}
               transition={{ duration: 1, delay: 0.4 }}
-              className="space-y-6 border-l border-white/10 pl-8 ml-2"
+              className="space-y-6 flex flex-col items-center"
             >
-              <p className="text-gray-400 font-sans text-sm md:text-base tracking-wide leading-relaxed font-light flex items-center gap-2">
+              <p className="text-gray-400 font-sans text-sm md:text-base tracking-wide leading-relaxed font-light flex items-center justify-center gap-2">
                 <a href="https://www.astitvacreations.com" target="_blank" rel="noopener noreferrer" className="text-white hover:text-gray-300 underline underline-offset-4 decoration-white/50 transition-colors inline-flex items-center gap-2">
                   Twilight studio is the sub brand of the Astitva creations
                   <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="opacity-70"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
@@ -101,9 +84,9 @@ const About = () => {
               </p>
               
               {content?.features && content.features.length > 0 && (
-                <ul className="mt-8 space-y-4">
+                <ul className="mt-8 space-y-4 text-left">
                   {content.features.map((feature, idx) => (
-                    <li key={idx} className="flex items-center text-xs font-sans tracking-[0.2em] text-gray-300 uppercase">
+                    <li key={idx} className="flex items-center justify-center text-xs font-sans tracking-[0.2em] text-gray-300 uppercase">
                       <span className="w-1.5 h-1.5 bg-white rounded-full mr-4 opacity-50"></span>
                       {feature}
                     </li>

@@ -267,7 +267,7 @@ const ServicePortfolio = () => {
                     <img 
                       src={optimizeCloudinaryUrl(img.url)} 
                       alt={`${activeData.name} portfolio`} 
-                      className="h-full w-auto object-contain transform group-hover:scale-105 transition-transform duration-700"
+                      className="h-full w-full object-cover transform group-hover:scale-105 transition-transform duration-700"
                       loading="lazy"
                     />
                     <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>

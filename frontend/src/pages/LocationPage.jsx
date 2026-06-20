@@ -22,7 +22,7 @@ const LocationPage = () => {
         </h1>
         <div className="w-20 h-[1px] bg-primary mx-auto mb-8"></div>
         
-        <p className="text-gray-400 font-sans font-light leading-relaxed mb-8">
+        <p className="text-white font-sans font-light leading-relaxed mb-8">
           Welcome to Imazen Studios, serving {cityName} with the most luxurious and cinematic photography experience. 
           Whether you are looking for a Maternity Shoot, Newborn Photography, or a Baby Milestone package in {cityName}, 
           our fully air-conditioned, baby-friendly premium studio is the perfect destination for you and your family.

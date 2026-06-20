@@ -59,15 +59,17 @@ router.put('/analytics', async (req, res) => {
 // Update contact details
 router.put('/contact', async (req, res) => {
   try {
-    const { contactEmail, whatsappNumber, teamEmails } = req.body;
+    const { contactEmail, whatsappNumber, teamEmails, footerStudioAddress, footerSocials } = req.body;
     let settings = await Settings.findOne();
     
     if (!settings) {
-      settings = new Settings({ contactEmail, whatsappNumber, teamEmails });
+      settings = new Settings({ contactEmail, whatsappNumber, teamEmails, footerStudioAddress, footerSocials });
     } else {
       if (contactEmail !== undefined) settings.contactEmail = contactEmail;
       if (whatsappNumber !== undefined) settings.whatsappNumber = whatsappNumber;
       if (teamEmails !== undefined) settings.teamEmails = teamEmails;
+      if (footerStudioAddress !== undefined) settings.footerStudioAddress = footerStudioAddress;
+      if (footerSocials !== undefined) settings.footerSocials = footerSocials;
     }
     
     await settings.save();
@@ -93,6 +95,25 @@ router.put('/maintenance', async (req, res) => {
     res.json(settings);
   } catch (error) {
     res.status(500).json({ error: 'Server error updating maintenance mode' });
+  }
+});
+
+// Update whatWeDo
+router.put('/whatwedo', async (req, res) => {
+  try {
+    const { whatWeDo } = req.body;
+    let settings = await Settings.findOne();
+    
+    if (!settings) {
+      settings = new Settings({ whatWeDo });
+    } else {
+      if (whatWeDo !== undefined) settings.whatWeDo = whatWeDo;
+    }
+    
+    await settings.save();
+    res.json(settings);
+  } catch (error) {
+    res.status(500).json({ error: 'Server error updating whatWeDo' });
   }
 });
 

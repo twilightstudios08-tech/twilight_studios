@@ -18,15 +18,15 @@ const featureSchema = new mongoose.Schema({
 });
 
 const subServiceSchema = new mongoose.Schema({
-  name: { type: String, required: true }, // e.g., "Newborn Stories"
-  slug: { type: String, required: true }, // e.g., "newborn-stories"
-  tagline: { type: String }, // e.g. "Capturing Moments That Last Forever"
+  name: { type: String, required: true }, // e.g. "Pre Wedding", "Maternity"
+  slug: { type: String, required: true },
   description: { type: String },
+  slotsActive: { type: Boolean, default: true },
   imageUrl: { type: String },
   heroImage: { type: String },
   mobileHeroImage: { type: String },
-  portfolioImages: [{ type: String }],
-  portfolioVideos: [{ type: String }],
+  portfolioImages: [{ url: String, _id: false }],
+  portfolioVideos: [{ url: String, thumbnail: String, _id: false }],
   packages: [packageSchema],
   landingAbout: {
     title: { type: String },
@@ -35,11 +35,13 @@ const subServiceSchema = new mongoose.Schema({
   },
   features: [featureSchema],
   faqs: [faqSchema]
-});
+}, { _id: false });
 
 const serviceSchema = new mongoose.Schema({
   name: { type: String, required: true, unique: true }, // e.g. "Maternity Stories", "Baby Shoots"
   slug: { type: String, required: true, unique: true }, // e.g. "maternity-stories"
+  order: { type: Number, default: 0 },
+  slotsActive: { type: Boolean, default: true },
   tagline: { type: String }, // e.g. "Capturing Moments That Last Forever"
   description: { type: String },
   imageUrl: { type: String },

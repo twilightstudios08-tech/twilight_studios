@@ -56,10 +56,15 @@ const AdminDashboard = () => {
 
   const dashboardFilteredLeads = filterByDate(leads);
   const dashboardFilteredInquiries = filterByDate(inquiries);
+  const dashboardFilteredBookings = filterByDate(bookings);
 
-  const combinedRecent = [...dashboardFilteredLeads.map(l => ({...l, isLead: true, created: l.createdAt || l.date})), ...dashboardFilteredInquiries.map(i => ({...i, isLead: false, created: i.createdAt || i.date}))]
+  const combinedRecent = [
+    ...dashboardFilteredLeads.map(l => ({...l, isType: 'LEAD', created: l.createdAt || l.date})),
+    ...dashboardFilteredInquiries.map(i => ({...i, isType: 'INQUIRY', created: i.createdAt || i.date})),
+    ...dashboardFilteredBookings.map(b => ({...b, isType: 'BOOKING', created: b.createdAt || b.date}))
+  ]
     .sort((a, b) => new Date(b.created) - new Date(a.created))
-    .filter(item => dashboardTypeFilter === 'all' ? true : (dashboardTypeFilter === 'leads' ? item.isLead : !item.isLead))
+    .filter(item => dashboardTypeFilter === 'all' ? true : (dashboardTypeFilter === 'leads' ? item.isType === 'LEAD' : dashboardTypeFilter === 'bookings' ? item.isType === 'BOOKING' : item.isType === 'INQUIRY'))
     .slice(0, 10);
 
   
@@ -122,6 +127,7 @@ const AdminDashboard = () => {
   const [editingBooking, setEditingBooking] = useState(null);
   const [bookingMonthFilter, setBookingMonthFilter] = useState('');
   const [bookingStatusFilter, setBookingStatusFilter] = useState('All Bookings');
+  const [bookingSearchText, setBookingSearchText] = useState('');
   
   // Subscriptions Feature
   const [isSubscriptionModalOpen, setIsSubscriptionModalOpen] = useState(false);
@@ -604,12 +610,28 @@ const AdminDashboard = () => {
       await axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/settings/contact`, {
         contactEmail: settings.contactEmail,
         whatsappNumber: settings.whatsappNumber,
-        teamEmails: settings.teamEmails
+        teamEmails: settings.teamEmails,
+        footerStudioAddress: settings.footerStudioAddress,
+        footerSocials: settings.footerSocials,
+        footerLocations: settings.footerLocations
       });
-      alert('Contact settings saved!');
+      alert('Contact and Footer settings saved!');
     } catch (error) {
       console.error(error);
-      alert('Error saving Contact Settings');
+      alert('Error saving Contact/Footer Settings');
+    }
+  };
+
+  const handleSaveWhatWeDo = async (e) => {
+    e.preventDefault();
+    try {
+      await axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/settings/whatwedo`, {
+        whatWeDo: settings.whatWeDo || []
+      });
+      alert('What We Do settings saved!');
+    } catch (error) {
+      console.error(error);
+      alert('Error saving What We Do settings');
     }
   };
 
@@ -903,7 +925,7 @@ const AdminDashboard = () => {
           </h2>
         </div>
         <nav className="flex-1 p-6 space-y-3 overflow-y-auto custom-scrollbar">
-          {['dashboard', 'cms', 'hero', 'landing pages', 'studio', 'services', 'themes', 'gallery', 'bookings', 'slots', 'inquiries', 'leads', 'customers', 'testimonials', 'team', 'developer options'].map(tab => (
+          {['dashboard', 'leads', 'inquiries', 'bookings', 'slots', 'customers', 'testimonials', 'team', 'cms', 'hero', 'landing pages', 'studio', 'services', 'themes', 'gallery', 'developer options'].map(tab => (
             <button 
               key={tab}
               onClick={() => { setActiveTab(tab); setIsMobileMenuOpen(false); }}
@@ -918,9 +940,9 @@ const AdminDashboard = () => {
           ))}
         </nav>
         <div className="p-6 border-t border-white/5 bg-gradient-to-t from-black/50 to-transparent">
-          <Link to="/" className="text-gray-500 text-xs tracking-widest uppercase hover:text-white transition-colors flex items-center gap-2">
-            <span>←</span> Back to Website
-          </Link>
+          <button onClick={() => { localStorage.clear(); window.location.href = '/'; }} className="text-gray-500 text-xs tracking-widest uppercase hover:text-white transition-colors flex items-center gap-2">
+            <span>←</span> Logout
+          </button>
         </div>
       </div>
 
@@ -1017,7 +1039,12 @@ const AdminDashboard = () => {
                 </div>
               </div>
               
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
+                <div className={glassPanel + " p-6 flex flex-col"}>
+                  <div className="text-gray-500 font-sans text-[10px] uppercase tracking-widest mb-2">Total Bookings</div>
+                  <div className="text-5xl font-oswald text-white mb-4">{dashboardFilteredBookings.length}</div>
+                  <div className="text-emerald-500 font-sans text-[10px] tracking-widest">All scheduled shoots</div>
+                </div>
                 <div className={glassPanel + " p-6 flex flex-col"}>
                   <div className="text-gray-500 font-sans text-[10px] uppercase tracking-widest mb-2">Total Leads</div>
                   <div className="text-5xl font-oswald text-white mb-4">{dashboardFilteredLeads.length}</div>
@@ -1031,14 +1058,14 @@ const AdminDashboard = () => {
                 <div className={glassPanel + " p-6 flex flex-col"}>
                   <div className="text-gray-500 font-sans text-[10px] uppercase tracking-widest mb-2">Pending</div>
                   <div className="text-5xl font-oswald text-white mb-4">
-                    {dashboardFilteredLeads.filter(l => l.status === 'PENDING' || l.status === 'Pending').length + dashboardFilteredInquiries.filter(i => i.status === 'PENDING' || i.status === 'Pending').length}
+                    {dashboardFilteredLeads.filter(l => l.status === 'PENDING' || l.status === 'Pending').length + dashboardFilteredInquiries.filter(i => i.status === 'PENDING' || i.status === 'Pending').length + dashboardFilteredBookings.filter(b => b.status === 'PENDING' || b.status === 'Pending').length}
                   </div>
                   <div className="text-emerald-500 font-sans text-[10px] tracking-widest">Needs review (Combined)</div>
                 </div>
                 <div className={glassPanel + " p-6 flex flex-col"}>
                   <div className="text-gray-500 font-sans text-[10px] uppercase tracking-widest mb-2">Confirmed</div>
                   <div className="text-5xl font-oswald text-white mb-4">
-                    {dashboardFilteredLeads.filter(l => l.status === 'CONFIRMED' || l.status === 'CONTACTED' || l.status === 'Confirmed' || l.status === 'Contacted').length + dashboardFilteredInquiries.filter(i => i.status === 'CONFIRMED' || i.status === 'Confirmed').length}
+                    {dashboardFilteredLeads.filter(l => l.status === 'CONFIRMED' || l.status === 'CONTACTED' || l.status === 'Confirmed' || l.status === 'Contacted').length + dashboardFilteredInquiries.filter(i => i.status === 'CONFIRMED' || i.status === 'Confirmed').length + dashboardFilteredBookings.filter(b => b.status === 'CONFIRMED' || b.status === 'Confirmed' || b.status === 'COMPLETED').length}
                   </div>
                   <div className="text-emerald-500 font-sans text-[10px] tracking-widest">Converted (Combined)</div>
                 </div>
@@ -1054,6 +1081,7 @@ const AdminDashboard = () => {
                       onChange={(e) => setDashboardTypeFilter(e.target.value)}
                     >
                       <option value="all" className="bg-[#121212] text-white">All Types</option>
+                      <option value="bookings" className="bg-[#121212] text-white">Bookings Only</option>
                       <option value="leads" className="bg-[#121212] text-white">Leads Only</option>
                       <option value="inquiries" className="bg-[#121212] text-white">Inquiries Only</option>
                     </select>
@@ -1075,12 +1103,12 @@ const AdminDashboard = () => {
                     <tbody>
                       {combinedRecent.map((item, idx) => (
                         <tr key={idx} className="border-b border-white/5 hover:bg-white/5 transition-colors">
-                          <td className="py-4"><span className="text-[9px] uppercase tracking-widest border border-purple-500/30 text-purple-400 px-2 py-1 rounded">{item.isLead ? 'LEAD' : 'INQUIRY'}</span></td>
+                          <td className="py-4"><span className="text-[9px] uppercase tracking-widest border border-purple-500/30 text-purple-400 px-2 py-1 rounded">{item.isType}</span></td>
                           <td className="py-4 text-white">{item.name}</td>
                           <td className="py-4 text-gray-400">{item.eventDate || item.date || 'N/A'}</td>
-                          <td className="py-4 text-gray-400">{item.interestedIn || item.service || 'N/A'}</td>
+                          <td className="py-4 text-gray-400">{item.interestedIn || item.package || item.service || 'N/A'}</td>
                           <td className="py-4"><span className="text-[9px] uppercase tracking-widest border border-yellow-500/30 text-yellow-400 px-2 py-1 rounded">{item.status}</span></td>
-                          <td className="py-4"><button onClick={() => setActiveTab(item.isLead ? 'leads' : 'inquiries')} className="text-xs uppercase tracking-widest text-gray-400 hover:text-white transition-colors">Review</button></td>
+                          <td className="py-4"><button onClick={() => setActiveTab(item.isType === 'LEAD' ? 'leads' : item.isType === 'BOOKING' ? 'bookings' : 'inquiries')} className="text-xs uppercase tracking-widest text-gray-400 hover:text-white transition-colors">Review</button></td>
                         </tr>
                       ))}
                     </tbody>
@@ -1127,6 +1155,84 @@ const AdminDashboard = () => {
                           <p className="text-[10px] text-gray-500 mt-1 uppercase tracking-widest">These emails will receive new booking notifications.</p>
                         </div>
                         <button type="submit" disabled={isGlobalSubmitting} className="px-6 py-3 rounded-xl bg-green-600 hover:bg-green-500 text-white font-bold text-xs uppercase tracking-widest transition-all disabled:opacity-50 disabled:cursor-not-allowed">{isGlobalSubmitting ? 'Saving...' : 'Save Contact Info'}</button>
+                      </form>
+                    </div>
+                    {/* Footer Settings */}
+                    <div className={`${glassPanel} p-8 hover:border-white/20 transition-all duration-300 border border-purple-500/20 bg-gradient-to-br from-purple-900/10 to-transparent`}>
+                      <h3 className="text-xl text-white font-oswald tracking-[0.2em] uppercase mb-4">Footer Settings</h3>
+                      <form onSubmit={handleSaveContactSettings} className="space-y-4 max-w-2xl">
+                        <div>
+                          <label className="block text-xs uppercase text-gray-500 mb-2">Studio Address</label>
+                          <textarea className={glassInput} rows="3" placeholder="e.g. 123 Cinematic Way..." value={settings.footerStudioAddress || ''} onChange={e => setSettings({...settings, footerStudioAddress: e.target.value})}></textarea>
+                        </div>
+                        <div>
+                          <label className="block text-xs uppercase text-gray-500 mb-2">Social Links</label>
+                          <div className="space-y-3">
+                            {(settings.footerSocials || []).map((social, idx) => (
+                              <div key={idx} className="flex gap-2 items-center">
+                                <input type="text" className={`${glassInput} w-1/3`} placeholder="Platform (e.g. Instagram)" value={social.platform} onChange={e => {
+                                  const newSocials = [...settings.footerSocials];
+                                  newSocials[idx].platform = e.target.value;
+                                  setSettings({...settings, footerSocials: newSocials});
+                                }} />
+                                <input type="text" className={`${glassInput} flex-1`} placeholder="Link (e.g. https://...)" value={social.link} onChange={e => {
+                                  const newSocials = [...settings.footerSocials];
+                                  newSocials[idx].link = e.target.value;
+                                  setSettings({...settings, footerSocials: newSocials});
+                                }} />
+                                <button type="button" onClick={() => {
+                                  const newSocials = [...settings.footerSocials];
+                                  newSocials.splice(idx, 1);
+                                  setSettings({...settings, footerSocials: newSocials});
+                                }} className="text-red-500 hover:text-red-400 p-2">&times;</button>
+                              </div>
+                            ))}
+                            <button type="button" onClick={() => {
+                              setSettings({...settings, footerSocials: [...(settings.footerSocials || []), { platform: '', link: '' }]});
+                            }} className="text-[10px] text-gray-400 hover:text-white uppercase tracking-widest">+ Add Social Link</button>
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="block text-xs uppercase text-gray-500 mb-2">Locations (comma separated)</label>
+                          <input type="text" className={glassInput} placeholder="e.g. Srikakulam, Vizag, Vizianagaram" value={(settings.footerLocations || []).join(', ')} onChange={e => setSettings({...settings, footerLocations: e.target.value.split(',').map(l => l.trim()).filter(l => l)})} />
+                        </div>
+
+                        <button type="submit" disabled={isGlobalSubmitting} className="px-6 py-3 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs uppercase tracking-widest transition-all disabled:opacity-50 disabled:cursor-not-allowed">{isGlobalSubmitting ? 'Saving...' : 'Save Footer Info'}</button>
+                      </form>
+                    </div>
+
+                    {/* What We Do (Home Page) Settings */}
+                    <div className={`${glassPanel} p-8 hover:border-white/20 transition-all duration-300`}>
+                      <h3 className="text-xl text-white font-oswald tracking-[0.2em] uppercase mb-4">What We Do (Home Page)</h3>
+                      <form onSubmit={handleSaveWhatWeDo} className="space-y-4 max-w-4xl">
+                        <div className="space-y-4">
+                          {(settings.whatWeDo || []).map((item, idx) => (
+                            <div key={idx} className="flex gap-4 items-start bg-white/5 p-4 rounded-xl border border-white/10">
+                              <div className="flex-1 space-y-3">
+                                <input type="text" className={glassInput} placeholder="Title" value={item.title || ''} onChange={e => {
+                                  const newArr = [...settings.whatWeDo];
+                                  newArr[idx].title = e.target.value;
+                                  setSettings({...settings, whatWeDo: newArr});
+                                }} />
+                                <textarea className={glassInput} rows="3" placeholder="Description" value={item.description || ''} onChange={e => {
+                                  const newArr = [...settings.whatWeDo];
+                                  newArr[idx].description = e.target.value;
+                                  setSettings({...settings, whatWeDo: newArr});
+                                }}></textarea>
+                              </div>
+                              <button type="button" onClick={() => {
+                                const newArr = [...settings.whatWeDo];
+                                newArr.splice(idx, 1);
+                                setSettings({...settings, whatWeDo: newArr});
+                              }} className="text-red-500 hover:text-red-400 p-2 text-2xl leading-none">&times;</button>
+                            </div>
+                          ))}
+                          <button type="button" onClick={() => {
+                            setSettings({...settings, whatWeDo: [...(settings.whatWeDo || []), { title: '', description: '' }]});
+                          }} className="text-[10px] text-gray-400 hover:text-white uppercase tracking-widest">+ Add Item</button>
+                        </div>
+                        <button type="submit" disabled={isGlobalSubmitting} className="px-6 py-3 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs uppercase tracking-widest transition-all disabled:opacity-50 disabled:cursor-not-allowed">{isGlobalSubmitting ? 'Saving...' : 'Save What We Do'}</button>
                       </form>
                     </div>
 
@@ -1281,8 +1387,9 @@ const AdminDashboard = () => {
                             </span>
                           </div>
                           <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity translate-y-[-10px] group-hover:translate-y-0">
-                            <button onClick={() => setEditingLandingPage(page)} className="w-8 h-8 rounded-full bg-white text-black flex items-center justify-center hover:scale-110 shadow-lg">✎</button>
-                            <button onClick={() => handleDeleteLandingPage(page._id)} className="w-8 h-8 rounded-full bg-red-500 text-white flex items-center justify-center hover:scale-110 shadow-lg">×</button>
+                            <button onClick={() => window.open(`/${page.slug}`, '_blank')} className="w-8 h-8 rounded-full bg-blue-500 text-white flex items-center justify-center hover:scale-110 shadow-lg" title="Preview">👁</button>
+                            <button onClick={() => setEditingLandingPage(page)} className="w-8 h-8 rounded-full bg-white text-black flex items-center justify-center hover:scale-110 shadow-lg" title="Edit">✎</button>
+                            <button onClick={() => handleDeleteLandingPage(page._id)} className="w-8 h-8 rounded-full bg-red-500 text-white flex items-center justify-center hover:scale-110 shadow-lg" title="Delete">×</button>
                           </div>
                         </div>
                       ))}
@@ -1456,26 +1563,55 @@ const AdminDashboard = () => {
                            <DragDropVideoUploader currentVideo={editingLandingPage.displayVideoUrl} onUploadSuccess={(url) => setEditingLandingPage({...editingLandingPage, displayVideoUrl: url})} />
                         </div>
 
-                        {/* APPROACH SECTION */}
+                        {/* APPROACH SECTIONS */}
                         <div className="border-t border-white/5 pt-6 mt-6">
-                          <h3 className="text-sm text-gray-400 font-sans tracking-[0.2em] uppercase mb-4">Our Approach</h3>
-                          <div className="space-y-4">
-                            <div>
-                              <label className="block text-xs uppercase text-gray-400 mb-2">Heading</label>
-                              <input type="text" className={glassInput} value={editingLandingPage.approachSection?.heading || ''} onChange={e => setEditingLandingPage({...editingLandingPage, approachSection: {...(editingLandingPage.approachSection || {}), heading: e.target.value}})} />
-                            </div>
-                            <div>
-                              <label className="block text-xs uppercase text-gray-400 mb-2">Description</label>
-                              <textarea className={`${glassInput} h-32`} value={editingLandingPage.approachSection?.description || ''} onChange={e => setEditingLandingPage({...editingLandingPage, approachSection: {...(editingLandingPage.approachSection || {}), description: e.target.value}})}></textarea>
-                            </div>
-                            <div className="mt-4">
-                              <label className="block text-xs uppercase text-gray-400 mb-2">Text Alignment</label>
-                              <select className={glassInput} value={editingLandingPage.approachSection?.align || 'center'} onChange={e => setEditingLandingPage({...editingLandingPage, approachSection: {...(editingLandingPage.approachSection || {}), align: e.target.value}})}>
-                                <option value="left" className="bg-black text-white">Left</option>
-                                <option value="center" className="bg-black text-white">Center</option>
-                                <option value="right" className="bg-black text-white">Right</option>
-                              </select>
-                            </div>
+                          <div className="flex justify-between items-center mb-4">
+                            <h3 className="text-sm text-gray-400 font-sans tracking-[0.2em] uppercase">Our Approach</h3>
+                            <button type="button" onClick={() => {
+                              const newSections = [...(editingLandingPage.approachSections || []), { heading: '', description: '', align: 'center' }];
+                              setEditingLandingPage({...editingLandingPage, approachSections: newSections});
+                            }} className="text-xs uppercase bg-white/10 px-3 py-1 rounded hover:bg-white hover:text-black transition-colors">+ Add Section</button>
+                          </div>
+                          <div className="space-y-6">
+                            {(editingLandingPage.approachSections || []).map((section, idx) => (
+                              <div key={idx} className="p-4 border border-white/10 rounded bg-black/40 relative">
+                                <button type="button" onClick={() => {
+                                  const newSections = [...editingLandingPage.approachSections];
+                                  newSections.splice(idx, 1);
+                                  setEditingLandingPage({...editingLandingPage, approachSections: newSections});
+                                }} className="absolute top-2 right-2 text-red-500 hover:text-red-400">&times;</button>
+                                <div className="space-y-4">
+                                  <div>
+                                    <label className="block text-xs uppercase text-gray-400 mb-2">Heading</label>
+                                    <input type="text" className={glassInput} value={section.heading || ''} onChange={e => {
+                                      const newSections = [...editingLandingPage.approachSections];
+                                      newSections[idx].heading = e.target.value;
+                                      setEditingLandingPage({...editingLandingPage, approachSections: newSections});
+                                    }} />
+                                  </div>
+                                  <div>
+                                    <label className="block text-xs uppercase text-gray-400 mb-2">Description</label>
+                                    <textarea className={`${glassInput} h-32`} value={section.description || ''} onChange={e => {
+                                      const newSections = [...editingLandingPage.approachSections];
+                                      newSections[idx].description = e.target.value;
+                                      setEditingLandingPage({...editingLandingPage, approachSections: newSections});
+                                    }}></textarea>
+                                  </div>
+                                  <div>
+                                    <label className="block text-xs uppercase text-gray-400 mb-2">Text Alignment</label>
+                                    <select className={glassInput} value={section.align || 'center'} onChange={e => {
+                                      const newSections = [...editingLandingPage.approachSections];
+                                      newSections[idx].align = e.target.value;
+                                      setEditingLandingPage({...editingLandingPage, approachSections: newSections});
+                                    }}>
+                                      <option value="left" className="bg-black text-white">Left</option>
+                                      <option value="center" className="bg-black text-white">Center</option>
+                                      <option value="right" className="bg-black text-white">Right</option>
+                                    </select>
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
                           </div>
                         </div>
 
@@ -1806,8 +1942,20 @@ const AdminDashboard = () => {
                                <label className="block text-xs uppercase text-gray-400 mb-2">Slug</label>
                                <input type="text" className={glassInput} value={editingService.slug} onChange={e => setEditingService({...editingService, slug: e.target.value})} />
                              </div>
-                             <label className="block text-xs uppercase text-gray-400 mb-2">Tagline (for Portfolio Page)</label>
-                             <input type="text" className={glassInput} placeholder="e.g. Capturing Moments That Last Forever" value={editingService.tagline || ''} onChange={e => setEditingService({...editingService, tagline: e.target.value})} />
+                             <div>
+                               <label className="block text-xs uppercase text-gray-400 mb-2">Order</label>
+                               <input type="number" className={glassInput} value={editingService.order || 0} onChange={e => setEditingService({...editingService, order: Number(e.target.value)})} />
+                             </div>
+                             <div>
+                               <label className="block text-xs uppercase text-gray-400 mb-2">Tagline (for Portfolio Page)</label>
+                               <input type="text" className={glassInput} placeholder="e.g. Capturing Moments That Last Forever" value={editingService.tagline || ''} onChange={e => setEditingService({...editingService, tagline: e.target.value})} />
+                             </div>
+                             <div className="col-span-2">
+                               <label className="flex items-center gap-2 text-xs uppercase text-gray-400 cursor-pointer">
+                                 <input type="checkbox" className="w-4 h-4" checked={editingService.slotsActive !== false} onChange={e => setEditingService({...editingService, slotsActive: e.target.checked})} />
+                                 Slots Active (Show in Booking)
+                               </label>
+                             </div>
                            </div>
                            <div>
                              <label className="block text-xs uppercase text-gray-400 mb-2">Category Description</label>
@@ -1910,6 +2058,12 @@ const AdminDashboard = () => {
                             <div>
                               <label className="block text-xs uppercase text-gray-400 mb-2">Tagline (for Portfolio Page)</label>
                               <input type="text" className={glassInput} placeholder="e.g. Capturing Moments That Last Forever" value={editingSubService.data.tagline || ''} onChange={e => setEditingSubService({...editingSubService, data: {...editingSubService.data, tagline: e.target.value}})} />
+                            </div>
+                            <div className="col-span-2">
+                              <label className="flex items-center gap-2 text-xs uppercase text-gray-400 cursor-pointer">
+                                <input type="checkbox" className="w-4 h-4" checked={editingSubService.data.slotsActive !== false} onChange={e => setEditingSubService({...editingSubService, data: {...editingSubService.data, slotsActive: e.target.checked}})} />
+                                Slots Active (Show in Booking)
+                              </label>
                             </div>
                             <div>
                               <label className="block text-xs uppercase text-gray-400 mb-2">Description</label>
@@ -2312,6 +2466,13 @@ const AdminDashboard = () => {
                         <p className="text-xs text-green-300/70 tracking-wide">Review and update client bookings.</p>
                       </div>
                       <div className="flex flex-wrap items-center gap-2 xl:gap-4 w-full xl:w-auto">
+                        <input 
+                          type="text" 
+                          placeholder="Search name, phone, email..."
+                          className="bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-xs text-white outline-none w-full sm:w-auto"
+                          value={bookingSearchText}
+                          onChange={(e) => setBookingSearchText(e.target.value)}
+                        />
                         <select 
                           className="bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-xs text-white outline-none"
                           value={bookingStatusFilter}
@@ -2354,7 +2515,9 @@ const AdminDashboard = () => {
                     {bookings.filter(b => {
                       const matchesMonth = bookingMonthFilter ? (b.date && b.date.startsWith(bookingMonthFilter)) : true;
                       const matchesStatus = bookingStatusFilter === 'All Bookings' || b.status === bookingStatusFilter;
-                      return matchesMonth && matchesStatus;
+                      const matchesSearch = bookingSearchText.trim() === '' || 
+                        [b.name, b.phone, b.email].some(val => val && String(val).toLowerCase().includes(bookingSearchText.toLowerCase()));
+                      return matchesMonth && matchesStatus && matchesSearch;
                     }).length === 0 ? (
                       <div className="text-center py-20 text-gray-500 uppercase tracking-widest">No bookings found for the selected filters.</div>
                     ) : (
@@ -2362,7 +2525,9 @@ const AdminDashboard = () => {
                         {bookings.filter(b => {
                           const matchesMonth = bookingMonthFilter ? (b.date && b.date.startsWith(bookingMonthFilter)) : true;
                           const matchesStatus = bookingStatusFilter === 'All Bookings' || b.status === bookingStatusFilter;
-                          return matchesMonth && matchesStatus;
+                          const matchesSearch = bookingSearchText.trim() === '' || 
+                            [b.name, b.phone, b.email].some(val => val && String(val).toLowerCase().includes(bookingSearchText.toLowerCase()));
+                          return matchesMonth && matchesStatus && matchesSearch;
                         }).map(booking => (
                           <div key={booking._id} className={`${glassPanel} p-6 flex flex-col relative`}>
                             <button 
@@ -2411,6 +2576,20 @@ const AdminDashboard = () => {
                                 )}
                               </div>
                               {booking.notes && <p className="text-xs text-gray-400 mt-2 pt-2 border-t border-white/5 italic">"{booking.notes}"</p>}
+                              
+                              {booking.slotHistory && booking.slotHistory.length > 0 && (
+                                <div className="mt-4 border-t border-white/5 pt-3">
+                                  <span className="block text-[9px] uppercase text-gray-500 mb-2">Slot History</span>
+                                  <div className="space-y-1">
+                                    {booking.slotHistory.map((history, idx) => (
+                                      <div key={idx} className="text-[10px] text-gray-400 flex flex-col sm:flex-row sm:items-center sm:gap-2">
+                                        <div><span className="text-gray-500">{history.oldDate} ({history.oldSlot})</span> ➔ <span className="text-white">{history.newDate} ({history.newSlot})</span></div>
+                                        <div className="text-[9px] text-gray-600 sm:ml-auto">{new Date(history.changedAt).toLocaleString()}</div>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
                             </div>
 
                             {/* Payment Tracking */}
@@ -3468,6 +3647,25 @@ const AdminDashboard = () => {
                             <span className="text-xs uppercase tracking-widest text-gray-400">Videos Delivered</span>
                             <input type="checkbox" className="hidden" checked={editingBooking.videosDelivered || false} onChange={e => setEditingBooking({...editingBooking, videosDelivered: e.target.checked})} />
                           </label>
+                        </div>
+                      </div>
+                    )}
+                    {editingBooking.slotHistory && editingBooking.slotHistory.length > 0 && (
+                      <div className="md:col-span-2 bg-black/40 border border-white/5 rounded-xl p-4 mt-2">
+                        <label className="block text-[10px] uppercase text-gray-500 mb-4">Slot Change History</label>
+                        <div className="space-y-2">
+                          {editingBooking.slotHistory.map((history, idx) => (
+                            <div key={idx} className="flex flex-col md:flex-row md:justify-between md:items-center text-xs text-gray-400 border-b border-white/5 pb-2 last:border-0 last:pb-0">
+                              <div>
+                                <span className="text-gray-500 mr-2">{history.oldDate} ({history.oldSlot})</span>
+                                ➔
+                                <span className="text-green-400 ml-2">{history.newDate} ({history.newSlot})</span>
+                              </div>
+                              <div className="text-[10px] text-gray-600 mt-1 md:mt-0">
+                                {new Date(history.changedAt).toLocaleString()}
+                              </div>
+                            </div>
+                          ))}
                         </div>
                       </div>
                     )}

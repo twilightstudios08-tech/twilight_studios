@@ -16,6 +16,13 @@ const bookingSchema = new mongoose.Schema({
     enum: ['Morning', 'Afternoon', 'Evening']
   },
   slots: [{ type: String, enum: ['Morning', 'Afternoon', 'Evening'] }],
+  slotHistory: [{
+    oldDate: { type: String },
+    oldSlot: { type: String },
+    newDate: { type: String },
+    newSlot: { type: String },
+    changedAt: { type: Date, default: Date.now }
+  }],
   notes: { type: String },
   status: {
     type: String,

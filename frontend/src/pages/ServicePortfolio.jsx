@@ -255,23 +255,23 @@ const ServicePortfolio = () => {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
               transition={{ duration: 0.4 }}
-              className="flex flex-wrap gap-4 items-center justify-center"
+              className="columns-1 sm:columns-2 md:columns-3 gap-6 space-y-6"
             >
               {activeData.images.length > 0 ? (
                 activeData.images.map((img, i) => (
                   <div 
                     key={i} 
-                    className="relative group overflow-hidden rounded-sm bg-white/5 cursor-pointer h-48 sm:h-64 md:h-80 flex-grow-0"
+                    className="relative group overflow-hidden rounded-sm bg-black break-inside-avoid shadow-2xl cursor-pointer mb-6"
                     onClick={() => setSelectedImageIndex(i)}
                   >
                     <img 
                       src={optimizeCloudinaryUrl(img.url)} 
                       alt={`${activeData.name} portfolio`} 
-                      className="h-full w-full object-cover transform group-hover:scale-105 transition-transform duration-700"
+                      className="w-full h-auto object-cover transform group-hover:scale-105 transition-transform duration-700"
                       loading="lazy"
                     />
                     <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+                    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none">
                       <span className="text-white text-3xl drop-shadow-lg">+</span>
                     </div>
                   </div>

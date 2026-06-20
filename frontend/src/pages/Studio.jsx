@@ -115,7 +115,7 @@ const Studio = () => {
             <h1 className="font-oswald font-bold text-5xl sm:text-6xl md:text-7xl lg:text-8xl uppercase tracking-widest leading-none mb-6 drop-shadow-2xl text-white">
               {studioData.name || 'TWILIGHT STUDIOS'}
             </h1>
-            <p className="font-sans text-sm md:text-base text-gray-300 tracking-[0.2em] uppercase max-w-xl mx-auto drop-shadow-md">
+            <p className="font-sans text-sm md:text-base text-white tracking-[0.2em] uppercase max-w-xl mx-auto drop-shadow-md">
               {studioData.description || 'Premium Photography & Cinematic Experience'}
             </p>
           </motion.div>
@@ -307,8 +307,6 @@ const Studio = () => {
           </AnimatePresence>
         </div>
       </section>
-
-      <Footer />
 
       {/* Lightbox Modal */}
       <AnimatePresence>

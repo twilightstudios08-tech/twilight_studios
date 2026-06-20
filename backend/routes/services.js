@@ -6,7 +6,7 @@ const router = express.Router();
 // GET all services
 router.get('/', async (req, res) => {
   try {
-    const services = await Service.find();
+    const services = await Service.find().sort({ order: 1 });
     res.json(services);
   } catch (err) {
     res.status(500).json({ message: err.message });

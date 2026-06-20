@@ -59,6 +59,11 @@ const Packages = () => {
     })
     .filter(svc => svc.subServices && svc.subServices.length > 0);
 
+  const servicesWithGlobalIndex = filteredServices.map((svc, i) => {
+    const startIdx = filteredServices.slice(0, i).reduce((acc, curr) => acc + (curr.subServices?.length || 0), 0);
+    return { ...svc, startIdx };
+  });
+
   return (
     <div className="pt-32 min-h-screen bg-black pb-32">
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
@@ -80,7 +85,7 @@ const Packages = () => {
           <div className="text-white font-sans text-sm tracking-widest uppercase animate-pulse">Loading Collections...</div>
         ) : (
           <div className="space-y-40">
-            {filteredServices.map((svc) => (
+            {servicesWithGlobalIndex.map((svc) => (
               <div key={svc._id} className="space-y-24">
                 {/* Optional category header if it has subservices */}
                 {svc.subServices && svc.subServices.length > 0 && (
@@ -90,14 +95,16 @@ const Packages = () => {
                   </div>
                 )}
                 
-                {svc.subServices?.map((sub, index) => (
+                {svc.subServices?.map((sub, index) => {
+                  const currentIndex = svc.startIdx + index;
+                  return (
                   <motion.div 
                     key={sub._id || sub.slug}
                     initial={{ opacity: 0, y: 50 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true, margin: "-100px" }}
                     transition={{ duration: 1 }}
-                    className="flex flex-col lg:flex-row gap-16 lg:gap-24"
+                    className={`flex flex-col ${currentIndex % 2 === 1 ? 'lg:flex-row-reverse' : 'lg:flex-row'} gap-16 lg:gap-24`}
                   >
                     {/* Large Image Block */}
                     <div className="lg:w-1/2 w-full">
@@ -152,7 +159,8 @@ const Packages = () => {
 
                     </div>
                   </motion.div>
-                ))}
+                  );
+                })}
               </div>
             ))}
           </div>

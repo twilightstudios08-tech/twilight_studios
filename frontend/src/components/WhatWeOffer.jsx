@@ -48,7 +48,7 @@ const WhatWeOffer = () => {
 
   const handleCardClick = (svc) => {
     if (svc.externalLink) {
-      window.location.href = svc.externalLink;
+      window.open(svc.externalLink, '_blank');
     } else {
       navigate(`/portfolio?service=${encodeURIComponent(svc.slug)}`);
     }
@@ -113,6 +113,8 @@ const WhatWeOffer = () => {
                   {svc.externalLink ? (
                     <a 
                       href={svc.externalLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
                       onClick={(e) => e.stopPropagation()} 
                       className="inline-block text-[9px] font-sans text-white uppercase tracking-[0.3em] border border-white/30 px-6 py-3 hover:bg-white hover:text-black transition-colors"
                     >

@@ -201,20 +201,20 @@ router.post('/', async (req, res) => {
           </div>
         `;
 
-        await transporter.sendMail({
+        transporter.sendMail({
           from: `"Imazen Studios" <${authUser}>`,
           to: email,
           subject: 'Your Imazen Studios Booking Request',
           html: clientEmailHtml
-        });
+        }).catch(e => console.error('Client email failed:', e));
 
         // Send to Team
-        await transporter.sendMail({
+        transporter.sendMail({
           from: `"Imazen Studios System" <${authUser}>`,
           to: teamEmails.join(', '),
           subject: `New Booking: ${shootType} on ${date}`,
           html: emailHtml
-        });
+        }).catch(e => console.error('Team email failed:', e));
       } else {
         console.warn('Email credentials not configured. Emails were not sent.');
       }
@@ -261,6 +261,15 @@ router.put('/:id/details', async (req, res) => {
     if (updateData.date && updateData.slot && 
        (existingBooking.date !== updateData.date || existingBooking.slot !== updateData.slot)) {
        
+       updateData.slotHistory = [...(existingBooking.slotHistory || [])];
+       updateData.slotHistory.push({
+         oldDate: existingBooking.date,
+         oldSlot: existingBooking.slot,
+         newDate: updateData.date,
+         newSlot: updateData.slot,
+         changedAt: new Date()
+       });
+
        // Decrement old slot
        let oldSlotRecord = await SlotCapacity.findOne({ date: existingBooking.date, slot: existingBooking.slot });
        if (oldSlotRecord && oldSlotRecord.currentBookings > 0) {

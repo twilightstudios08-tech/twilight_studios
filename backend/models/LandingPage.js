@@ -21,11 +21,11 @@ const landingPageSchema = new mongoose.Schema({
   }],
   heroTextAlign: { type: String, default: 'center' },
   displayVideoUrl: { type: String },
-  approachSection: {
+  approachSections: [{
     heading: { type: String },
     description: { type: String },
     align: { type: String, default: 'center' }
-  },
+  }],
   portfolioImagesHeading: { type: String },
   portfolioImagesAlign: { type: String, default: 'center' },
   portfolioVideosHeading: { type: String },

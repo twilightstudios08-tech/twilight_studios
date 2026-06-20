@@ -24,17 +24,17 @@ const DragDropImageUploader = ({
   const onDrop = useCallback(async (acceptedFiles) => {
     if (!acceptedFiles || acceptedFiles.length === 0) return;
 
-    if (!multiple) {
+    if (!multiple && !disableCompression) {
       // Single upload: open cropper
       const file = acceptedFiles[0];
       const reader = new FileReader();
       reader.addEventListener('load', () => setImageToCrop(reader.result));
       reader.readAsDataURL(file);
     } else {
-      // Multiple uploads: direct upload
+      // Multiple uploads or compression disabled: direct upload
       uploadFiles(acceptedFiles);
     }
-  }, [multiple]);
+  }, [multiple, disableCompression]);
 
   const onCropComplete = useCallback((croppedArea, croppedAreaPixels) => {
     setCroppedAreaPixels(croppedAreaPixels);

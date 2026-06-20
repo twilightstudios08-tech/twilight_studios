@@ -118,8 +118,17 @@ const HeroCarousel = ({ slides, align }) => {
 
 // Lead Modal Component
 const LeadModal = ({ isOpen, onClose, sourcePageSlug }) => {
-  const [formData, setFormData] = useState({ name: '', email: '', phone: '', eventDate: '', location: '', interestedIn: 'Wedding Photography & Film', vision: '' });
+  const [formData, setFormData] = useState({ name: '', email: '', phone: '', interestedIn: '' });
   const [status, setStatus] = useState('idle');
+  const [services, setServices] = useState([]);
+
+  useEffect(() => {
+    if (isOpen) {
+      axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/services`)
+        .then(res => setServices(res.data))
+        .catch(console.error);
+    }
+  }, [isOpen]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -130,7 +139,7 @@ const LeadModal = ({ isOpen, onClose, sourcePageSlug }) => {
       setTimeout(() => {
         onClose();
         setStatus('idle');
-        setFormData({ name: '', email: '', phone: '', eventDate: '', location: '', interestedIn: 'Wedding Photography & Film', vision: '' });
+        setFormData({ name: '', email: '', phone: '', interestedIn: '' });
       }, 2000);
     } catch (err) {
       console.error(err);
@@ -143,7 +152,7 @@ const LeadModal = ({ isOpen, onClose, sourcePageSlug }) => {
   return (
     <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
       <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="bg-[#0a0a0a] border border-white/10 p-8 w-full max-w-md rounded-2xl shadow-2xl relative">
-        <button onClick={onClose} className="absolute top-4 right-4 text-white/50 hover:text-black text-xl font-bold">&times;</button>
+        <button onClick={onClose} className="absolute top-4 right-4 text-white/50 hover:text-white text-3xl leading-none">&times;</button>
         <h2 className="font-oswald text-2xl text-white uppercase tracking-widest mb-6 text-center">Begin Your Journey</h2>
         
         {status === 'success' ? (
@@ -161,12 +170,17 @@ const LeadModal = ({ isOpen, onClose, sourcePageSlug }) => {
               <input required type="email" className="w-full bg-black/50 border border-white/10 rounded-xl p-3 text-white focus:border-white outline-none" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} />
             </div>
             <div>
-              <label className="block text-xs uppercase tracking-widest text-white/50 mb-2">Phone</label>
+              <label className="block text-xs uppercase tracking-widest text-white/50 mb-2">Phone Number</label>
               <input required type="tel" className="w-full bg-black/50 border border-white/10 rounded-xl p-3 text-white focus:border-white outline-none" value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} />
             </div>
             <div>
-              <label className="block text-xs uppercase tracking-widest text-white/50 mb-2">Event Date</label>
-              <input required type="date" className="w-full bg-black/50 border border-white/10 rounded-xl p-3 text-white focus:border-white outline-none" value={formData.eventDate} onChange={e => setFormData({...formData, eventDate: e.target.value})} />
+              <label className="block text-xs uppercase tracking-widest text-white/50 mb-2">Interested In</label>
+              <select required className="w-full bg-black/50 border border-white/10 rounded-xl p-3 text-white focus:border-white outline-none appearance-none" value={formData.interestedIn} onChange={e => setFormData({...formData, interestedIn: e.target.value})}>
+                <option value="" disabled>Select a Service</option>
+                {services.map(s => (
+                  <option key={s._id} value={s.name}>{s.name}</option>
+                ))}
+              </select>
             </div>
             <button type="submit" disabled={status === 'submitting'} className="w-full py-4 mt-4 bg-white hover:bg-gray-200 text-black font-oswald text-sm uppercase tracking-[0.2em] rounded-xl transition-colors disabled:opacity-50">
               {status === 'submitting' ? 'Submitting...' : 'Submit Inquiry'}
@@ -260,7 +274,7 @@ const LandingPage = () => {
   }, [selectedImageIndex, selectedVideoIndex, pageData]);
 
   if (loading) return (
-    <div className="min-h-screen bg-[#050505] font-sans selection:bg-white selection:text-black">
+    <div className="min-h-screen bg-[#050505] font-sans selection:bg-white selection:text-black flex items-center justify-center">
       <style>{`.swiper-wrapper { transition-timing-function: linear !important; }`}</style>
       <div className="flex flex-col items-center justify-center text-white font-oswald tracking-[0.5em] space-y-6">
         <div className="w-16 h-16 border-t-2 border-r-2 border-white/20 rounded-full animate-spin"></div>
@@ -334,15 +348,33 @@ const LandingPage = () => {
       )}
 
       {/* 3. OUR APPROACH */}
-      {pageData.approachSection?.heading && (
-        <section className={`py-24 px-6 lg:px-12 max-w-5xl mx-auto border-t border-white/5 flex flex-col ${getTextAlignClass(pageData.approachSection.align)}`}>
-          <h4 className="text-[10px] uppercase tracking-[0.4em] text-white/40 mb-6">Our Approach</h4>
-          <h2 className="font-oswald font-light text-4xl md:text-5xl uppercase tracking-[0.1em] mb-10 text-white">
-            {pageData.approachSection.heading}
-          </h2>
-          <p className="font-sans font-light text-white/60 leading-[2] tracking-wide text-sm md:text-base whitespace-pre-line">
-            {pageData.approachSection.description}
-          </p>
+      {((pageData.approachSections && pageData.approachSections.length > 0) || pageData.approachSection?.heading) && (
+        <section className="py-24 px-6 lg:px-12 max-w-5xl mx-auto border-t border-white/5 flex flex-col">
+          <h4 className="text-[10px] uppercase tracking-[0.4em] text-white/40 mb-10 text-center">Our Approach</h4>
+          
+          <div className="space-y-16">
+            {pageData.approachSection?.heading && (!pageData.approachSections || pageData.approachSections.length === 0) && (
+              <div className={`flex flex-col ${getTextAlignClass(pageData.approachSection.align)}`}>
+                <h2 className="font-oswald font-light text-4xl md:text-5xl uppercase tracking-[0.1em] mb-6 text-white">
+                  {pageData.approachSection.heading}
+                </h2>
+                <p className="font-sans font-light text-white/60 leading-[2] tracking-wide text-sm md:text-base whitespace-pre-line">
+                  {pageData.approachSection.description}
+                </p>
+              </div>
+            )}
+            
+            {pageData.approachSections?.map((section, idx) => (
+              <div key={idx} className={`flex flex-col ${getTextAlignClass(section.align)}`}>
+                <h2 className="font-oswald font-light text-4xl md:text-5xl uppercase tracking-[0.1em] mb-6 text-white">
+                  {section.heading}
+                </h2>
+                <p className="font-sans font-light text-white/60 leading-[2] tracking-wide text-sm md:text-base whitespace-pre-line">
+                  {section.description}
+                </p>
+              </div>
+            ))}
+          </div>
         </section>
       )}
 
@@ -449,7 +481,7 @@ const LandingPage = () => {
           <h2 className="font-oswald font-light text-3xl md:text-4xl uppercase tracking-[0.2em] text-white mb-16 text-center">Testimonials</h2>
           <div className="max-w-4xl w-full text-center relative px-12">
             <h1 className="text-8xl font-serif text-white/10 absolute -top-12 left-1/2 -translate-x-1/2">"</h1>
-            <p className="font-sans font-light italic text-xl md:text-2xl text-white/80 leading-[1.8] mb-8 relative z-10">"{testimonials[0]?.reviewText}"</p>
+            <p className="font-sans font-light text-xl md:text-2xl text-white/80 leading-[1.8] mb-8 relative z-10">"{testimonials[0]?.reviewText}"</p>
             <div className="flex justify-center text-gray-300 text-sm mb-4 tracking-[0.2em]">★★★★★</div>
             <h4 className="font-oswald uppercase tracking-[0.2em] text-sm text-white">{testimonials[0]?.authorName}</h4>
           </div>
@@ -464,12 +496,24 @@ const LandingPage = () => {
             
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 text-left">
               {(pageData.customPackages?.length > 0 ? pageData.customPackages : displayPackages).map((pkg, idx) => (
-                <div key={idx} className="bg-black border border-white/10 hover:border-white/30 p-8 flex flex-col transition-all duration-500 hover:-translate-y-2">
-                  <h3 className="font-oswald text-xl uppercase tracking-[0.1em] text-white mb-2">{pkg.name}</h3>
-                  {pkg.price && <div className="text-white/80 font-oswald text-sm tracking-widest mb-4 border-b border-white/10 pb-4">{pkg.price}</div>}
-                  <p className="font-sans font-light text-white/50 text-sm mb-6 flex-1 whitespace-pre-line">{pkg.description}</p>
-                  <button onClick={() => setIsLeadModalOpen(true)} className="w-full text-center py-3 border border-white/20 hover:bg-white hover:text-black uppercase tracking-[0.2em] text-[10px] font-oswald transition-colors">
-                    Inquire
+                <div key={idx} className={`group bg-gradient-to-b from-[#111] to-black border ${idx % 2 !== 0 ? 'border-amber-500/30 shadow-[0_0_40px_rgba(245,158,11,0.1)]' : 'border-white/10'} hover:border-white/40 rounded-[2rem] p-10 md:p-12 flex flex-col transition-all duration-700 hover:-translate-y-4 relative overflow-hidden`}>
+                  <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none"></div>
+                  {idx % 2 !== 0 && (
+                    <>
+                      <div className="absolute top-0 inset-x-0 h-[2px] bg-gradient-to-r from-transparent via-amber-500 to-transparent"></div>
+                      <div className="absolute top-4 right-4 bg-amber-500/20 text-amber-500 text-[9px] uppercase tracking-widest px-3 py-1 rounded-full border border-amber-500/30">Most Selected</div>
+                    </>
+                  )}
+                  <h3 className="font-oswald text-3xl md:text-4xl uppercase tracking-[0.1em] text-white mb-4 relative z-10">{pkg.name}</h3>
+                  {pkg.price && (
+                    <div className="flex items-baseline gap-2 mb-8 relative z-10 border-b border-white/10 pb-8">
+                      <span className="text-4xl md:text-5xl font-oswald text-white tracking-widest">{pkg.price}</span>
+                      <span className="text-white/40 font-sans text-xs uppercase tracking-widest">/ Coverage</span>
+                    </div>
+                  )}
+                  <p className="font-sans font-light text-white/70 text-sm mb-12 flex-1 whitespace-pre-line leading-loose relative z-10">{pkg.description}</p>
+                  <button onClick={() => setIsLeadModalOpen(true)} className={`w-full text-center py-5 ${idx % 2 !== 0 ? 'bg-amber-500 hover:bg-amber-400 text-black border border-transparent' : 'bg-transparent border border-white/30 text-white hover:bg-white hover:text-black'} rounded-xl uppercase tracking-[0.3em] text-xs font-oswald transition-all duration-500 relative z-10`}>
+                    Inquire Now
                   </button>
                 </div>
               ))}

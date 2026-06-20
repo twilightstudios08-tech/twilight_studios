@@ -43,7 +43,7 @@ const Navbar = () => {
             : 'py-8 bg-transparent'
         }`}
       >
-        <div className="w-full px-4 lg:px-8 flex justify-between items-center">
+        <div className="w-full pl-8 lg:pl-20 pr-8 lg:pr-20 flex justify-between items-center">
           
           {/* LOGO */}
           <motion.a 
@@ -60,7 +60,7 @@ const Navbar = () => {
           <div className="hidden lg:flex items-center space-x-8">
             {/* Portfolio */}
             <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0 }}>
-              <Link to="/gallery" className="font-sans text-xs text-gray-400 uppercase tracking-[0.3em] hover:text-white transition-all duration-300 relative group block">
+              <Link to="/gallery" className="font-sans text-xs text-white brightness-125 uppercase tracking-[0.3em] hover:text-white transition-all duration-300 relative group block">
                 Portfolio
                 <span className="absolute -bottom-2 left-1/2 w-0 h-[1px] bg-white group-hover:w-full group-hover:left-0 transition-all duration-300"></span>
               </Link>
@@ -75,7 +75,7 @@ const Navbar = () => {
               onMouseEnter={() => setShowDropdown(true)}
               onMouseLeave={() => setShowDropdown(false)}
             >
-              <Link to="/packages" className="font-sans text-xs text-gray-400 uppercase tracking-[0.3em] hover:text-white transition-all duration-300 relative group block py-4">
+              <Link to="/packages" className="font-sans text-xs text-white brightness-125 uppercase tracking-[0.3em] hover:text-white transition-all duration-300 relative group block py-4">
                 Packages
                 <span className="absolute bottom-2 left-1/2 w-0 h-[1px] bg-white group-hover:w-full group-hover:left-0 transition-all duration-300"></span>
               </Link>
@@ -92,7 +92,7 @@ const Navbar = () => {
                       <div key={svc._id} className="relative group/sub">
                         <Link 
                           to={`/packages?service=${encodeURIComponent(svc.slug)}`} 
-                          className="block px-4 py-3 text-[10px] font-sans text-gray-400 hover:text-white hover:bg-white/5 uppercase tracking-widest transition-colors"
+                          className="block px-4 py-3 text-[10px] font-sans text-gray-200 brightness-110 hover:text-white hover:bg-white/5 uppercase tracking-widest transition-colors"
                         >
                           {svc.name}
                         </Link>
@@ -103,7 +103,7 @@ const Navbar = () => {
                                 <Link 
                                   key={sub._id || sub.slug}
                                   to={`/packages?service=${encodeURIComponent(svc.slug)}&sub=${encodeURIComponent(sub.slug)}`} 
-                                  className="block px-4 py-3 text-[10px] font-sans text-gray-400 hover:text-white hover:bg-white/5 uppercase tracking-widest transition-colors"
+                                  className="block px-4 py-3 text-[10px] font-sans text-gray-200 brightness-110 hover:text-white hover:bg-white/5 uppercase tracking-widest transition-colors"
                                 >
                                   {sub.name}
                                 </Link>
@@ -121,7 +121,7 @@ const Navbar = () => {
 
             {/* Themes */}
             <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.15 }}>
-              <Link to="/themes" className="font-sans text-xs text-gray-400 uppercase tracking-[0.3em] hover:text-white transition-all duration-300 relative group block">
+              <Link to="/themes" className="font-sans text-xs text-white brightness-125 uppercase tracking-[0.3em] hover:text-white transition-all duration-300 relative group block">
                 Themes
                 <span className="absolute -bottom-2 left-1/2 w-0 h-[1px] bg-white group-hover:w-full group-hover:left-0 transition-all duration-300"></span>
               </Link>
@@ -129,7 +129,7 @@ const Navbar = () => {
 
             {/* Studio */}
             <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.18 }}>
-              <Link to="/studio" className="font-sans text-xs text-gray-400 uppercase tracking-[0.3em] hover:text-white transition-all duration-300 relative group block">
+              <Link to="/studio" className="font-sans text-xs text-white brightness-125 uppercase tracking-[0.3em] hover:text-white transition-all duration-300 relative group block">
                 Studio
                 <span className="absolute -bottom-2 left-1/2 w-0 h-[1px] bg-white group-hover:w-full group-hover:left-0 transition-all duration-300"></span>
               </Link>
@@ -137,7 +137,7 @@ const Navbar = () => {
 
             {/* About */}
             <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.2 }}>
-              <Link to="/about" className="font-sans text-xs text-gray-400 uppercase tracking-[0.3em] hover:text-white transition-all duration-300 relative group block">
+              <Link to="/about" className="font-sans text-xs text-white brightness-125 uppercase tracking-[0.3em] hover:text-white transition-all duration-300 relative group block">
                 About
                 <span className="absolute -bottom-2 left-1/2 w-0 h-[1px] bg-white group-hover:w-full group-hover:left-0 transition-all duration-300"></span>
               </Link>
@@ -145,7 +145,7 @@ const Navbar = () => {
 
             {/* Testimonials */}
             <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.25 }}>
-              <Link to="/testimonials" className="font-sans text-xs text-gray-400 uppercase tracking-[0.3em] hover:text-white transition-all duration-300 relative group block">
+              <Link to="/testimonials" className="font-sans text-xs text-white brightness-125 uppercase tracking-[0.3em] hover:text-white transition-all duration-300 relative group block">
                 Testimonials
                 <span className="absolute -bottom-2 left-1/2 w-0 h-[1px] bg-white group-hover:w-full group-hover:left-0 transition-all duration-300"></span>
               </Link>
@@ -153,7 +153,7 @@ const Navbar = () => {
 
             {/* Contact */}
             <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.3 }}>
-              <Link to="/contact" className="font-sans text-xs text-gray-400 uppercase tracking-[0.3em] hover:text-white transition-all duration-300 relative group block">
+              <Link to="/contact" className="font-sans text-xs text-white brightness-125 uppercase tracking-[0.3em] hover:text-white transition-all duration-300 relative group block">
                 Contact
                 <span className="absolute -bottom-2 left-1/2 w-0 h-[1px] bg-white group-hover:w-full group-hover:left-0 transition-all duration-300"></span>
               </Link>

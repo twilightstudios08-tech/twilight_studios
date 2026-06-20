@@ -137,8 +137,18 @@ function App() {
   if (showInitialLoader) {
     return (
       <div className="min-h-screen bg-[#050505] flex flex-col items-center justify-center">
-        <img src="/images/logo.png" alt="Imazen Studios Logo" className="w-64 mb-8" />
-        <div className="w-12 h-12 border-4 border-white/10 border-t-white rounded-full animate-spin"></div>
+        <div className="relative w-40 sm:w-64 h-20 sm:h-24">
+          <img src="/images/logo.png" alt="Imazen Studios Logo" className="absolute inset-0 w-full h-full object-contain opacity-20" />
+          <div className="absolute top-0 left-0 h-full overflow-hidden" style={{ animation: 'fillLogo 2.5s ease-in-out forwards' }}>
+            <img src="/images/logo.png" alt="Imazen Studios Logo" className="w-40 sm:w-64 h-20 sm:h-24 object-contain max-w-none origin-left" />
+          </div>
+        </div>
+        <style>{`
+          @keyframes fillLogo {
+            0% { width: 0%; }
+            100% { width: 100%; }
+          }
+        `}</style>
       </div>
     );
   }

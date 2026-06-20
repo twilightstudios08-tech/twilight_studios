@@ -32,7 +32,15 @@ const Book = () => {
   useEffect(() => {
     axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/services`)
       .then(res => {
-        if (res.data) setServicesData(res.data);
+        if (res.data) {
+          const activeServices = res.data.filter(s => s.slotsActive !== false).map(s => {
+            if (s.subServices) {
+              return { ...s, subServices: s.subServices.filter(sub => sub.slotsActive !== false) };
+            }
+            return s;
+          });
+          setServicesData(activeServices);
+        }
       })
       .catch(err => console.error(err));
 
@@ -165,8 +173,8 @@ const Book = () => {
 
       {/* Background Image overlay */}
       <div 
-        className="absolute inset-0 bg-cover bg-center opacity-10 mix-blend-luminosity" 
-        style={{ backgroundImage: 'url(https://images.unsplash.com/photo-1542044896530-05d85be9b11a?q=80&w=1920&auto=format&fit=crop)' }}
+        className="absolute inset-0 bg-cover bg-center opacity-20 mix-blend-luminosity" 
+        style={{ backgroundImage: 'url(/images/banner_bg.webp)' }}
       ></div>
       <div className="absolute inset-0 bg-gradient-to-b from-[#050505] via-transparent to-[#050505]"></div>
 
@@ -174,6 +182,10 @@ const Book = () => {
         
         {/* Glow effect inside card */}
         <div className="absolute top-0 inset-x-0 h-[1px] bg-gradient-to-r from-transparent via-white/30 to-transparent"></div>
+
+        <h1 className="font-oswald font-light text-2xl md:text-3xl text-center text-white uppercase tracking-[0.2em] mb-12">
+          Book The Slot
+        </h1>
 
         <div className="mb-14 flex justify-center items-center gap-2 sm:gap-3">
           {[1,2,3,4,5,6].map(s => (
@@ -250,7 +262,7 @@ const Book = () => {
                   {getActiveTitle()}
                 </p>
               )}
-              <h2 className="font-oswald font-bold text-3xl sm:text-4xl text-white uppercase tracking-[0.2em] mb-12 text-center bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400">Choose Tier</h2>
+              <h2 className="font-oswald font-bold text-3xl sm:text-4xl text-white uppercase tracking-[0.2em] mb-12 text-center bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400">Choose Package</h2>
               <div className="space-y-4">
                 {getActivePackages().map((t, i) => (
                   <div 
@@ -274,7 +286,7 @@ const Book = () => {
                       )}
                     </div>
                     <div className="self-end md:self-center shrink-0">
-                      <span className="text-gray-400 group-hover:text-black group-hover:bg-white group-hover:border-transparent transition-all border border-white/20 px-6 py-3 text-[10px] uppercase tracking-widest rounded-full font-bold">Select Tier</span>
+                      <span className="text-gray-400 group-hover:text-black group-hover:bg-white group-hover:border-transparent transition-all border border-white/20 px-6 py-3 text-[10px] uppercase tracking-widest rounded-full font-bold">Select</span>
                     </div>
                   </div>
                 ))}

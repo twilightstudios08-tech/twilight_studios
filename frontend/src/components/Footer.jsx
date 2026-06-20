@@ -5,7 +5,13 @@ import axios from 'axios';
 const Footer = ({ isLandingPage = false, hideInquiries = false }) => {
   const [contact, setContact] = useState({
     email: 'hello@imazenstudios.com',
-    phone: '+1 (555) 019-2834'
+    phone: '+1 (555) 019-2834',
+    footerStudioAddress: '123 Cinematic Way\nAesthetic District\nNew York, NY 10012',
+    footerSocials: [
+      { platform: 'Instagram', link: '#' },
+      { platform: 'Facebook', link: '#' },
+      { platform: 'Pinterest', link: '#' }
+    ]
   });
 
   useEffect(() => {
@@ -14,7 +20,14 @@ const Footer = ({ isLandingPage = false, hideInquiries = false }) => {
         if (res.data) {
           setContact({
             email: res.data.contactEmail || 'hello@imazenstudios.com',
-            phone: res.data.whatsappNumber || '+1 (555) 019-2834'
+            phone: res.data.whatsappNumber || '+1 (555) 019-2834',
+            footerStudioAddress: res.data.footerStudioAddress || '123 Cinematic Way\nAesthetic District\nNew York, NY 10012',
+            footerSocials: (res.data.footerSocials && res.data.footerSocials.length > 0) ? res.data.footerSocials : [
+              { platform: 'Instagram', link: '#' },
+              { platform: 'Facebook', link: '#' },
+              { platform: 'Pinterest', link: '#' }
+            ],
+            footerLocations: res.data.footerLocations || ['Srikakulam', 'Vizag', 'Vizianagaram']
           });
         }
       })
@@ -37,17 +50,15 @@ const Footer = ({ isLandingPage = false, hideInquiries = false }) => {
           
           <div className="flex flex-col items-center md:items-start">
             <h3 className="font-oswald text-2xl uppercase tracking-[0.3em] mb-6">Studio</h3>
-            <p className="text-xs font-sans text-gray-400 tracking-widest leading-relaxed">
-              123 Cinematic Way<br/>
-              Aesthetic District<br/>
-              New York, NY 10012
+            <p className="text-xs font-sans text-gray-400 tracking-widest leading-relaxed whitespace-pre-line">
+              {contact.footerStudioAddress || "123 Cinematic Way\nAesthetic District\nNew York, NY 10012"}
             </p>
           </div>
 
           <div className="flex flex-col items-center">
             <h3 className="font-oswald text-2xl uppercase tracking-[0.3em] mb-6">Locations</h3>
             <div className="flex flex-col gap-3">
-              {['Srikakulam', 'Vizag', 'Vizianagaram'].map(city => (
+              {(contact.footerLocations || ['Srikakulam', 'Vizag', 'Vizianagaram']).map(city => (
                 <Link key={city} to={`/location/${city.toLowerCase()}`} className="text-xs font-sans text-gray-400 tracking-[0.2em] uppercase hover:text-white transition-colors">
                   {city}
                 </Link>
@@ -55,14 +66,16 @@ const Footer = ({ isLandingPage = false, hideInquiries = false }) => {
             </div>
           </div>
 
-
-
           <div className="flex flex-col items-center md:items-end">
             <h3 className="font-oswald text-2xl uppercase tracking-[0.3em] mb-6">Socials</h3>
             <div className="flex flex-col gap-3">
-              {['Instagram', 'Facebook', 'Pinterest'].map(social => (
-                <a key={social} href="#" className="text-xs font-sans text-gray-400 tracking-[0.2em] uppercase hover:text-white transition-colors">
-                  {social}
+              {(contact.footerSocials || [
+                { platform: 'Instagram', link: '#' },
+                { platform: 'Facebook', link: '#' },
+                { platform: 'Pinterest', link: '#' }
+              ]).map((social, idx) => (
+                <a key={idx} href={social.link} target="_blank" rel="noopener noreferrer" className="text-xs font-sans text-gray-400 tracking-[0.2em] uppercase hover:text-white transition-colors">
+                  {social.platform}
                 </a>
               ))}
             </div>
